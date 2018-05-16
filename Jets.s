@@ -182,6 +182,7 @@
 # * Vars has option cache`
 # * resolve FAILs collecting introduced
 # * NewIntSeq() introduced
+# * Report macro changed to inlined function
 #
 
 ###########################################################################################
@@ -253,16 +254,26 @@ if assigned(cat(`jets/read/flag/`,__FILE__)) then error "source file %1 already 
 if assigned(cat(`jets/read/flag/`,__FILE__)) then `quit`(255); fi; # force immediate exit from read() statement
 assign(cat(`jets/read/flag/`,__FILE__), true):
 
-### aux macros
+### Reporting macros
 ProcBaseName := proc() option inline; StringTools:-Split(convert((debugopts('callstack')[2]), string), "/")[1] end:
 ProcBaseSymbol := proc() option inline; convert(ProcBaseName(), symbol) end:
 ProcBaseSYMBOL := proc() option inline; convert(StringTools:-UpperCase(ProcBaseName()), symbol) end:
-#$define Report(l, m)  if rt > l then report(lb,m) fi;
-#$define Reportf(l, m) if rt > l then report(lb,sprintf(op(m))) fi;
-#$define Report(l, m)  if rt > l then report(lb,[cat('procname','`:`'), `if`(type(m,list),op(m),m)]) fi;
-#$define Reportf(l, m) if rt > l then report(lb,sprintf(cat("%s: ", op(1,m)), procname, op(2..-1, m))) fi;
-$define Report(l, m)  if `report/tab`[ProcBaseSymbol()] > l then report(cat(ProcBaseSYMBOL(), '`:`'), [cat('procname','`:`'), `if`(type(m,list),op(m),m)]) fi;
-$define Reportf(l, m)  if `report/tab`[ProcBaseSymbol()] > l then report(cat(ProcBaseSYMBOL(), '`:`'), sprintf(cat("%s: ", op(1,m)), ProcBaseSYMBOL(), op(2..-1, m))) fi;
+
+Report := proc(l, m)
+  option inline;   
+  `if` (evalb(`report/tab`[ProcBaseSymbol()] > l),
+        report(cat(ProcBaseSYMBOL(), '`:`'), [cat(debugopts('callstack')[2],":"), `if`(type(m,list),op(m),m)]),
+        NULL);
+end:
+
+Reportf := proc(l, m)
+  option inline;  
+  `if`(`report/tab`[ProcBaseSymbol()] > l,
+       report(cat(ProcBaseSYMBOL(), '`:`'), sprintf(cat("%a: ", op(1,m)), debugopts('callstack')[2], op(2..-1, m))),
+       NULL);
+end:
+
+
 
 ##############################
 #MaP := evalf(Threads[Map]);
