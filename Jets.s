@@ -255,21 +255,22 @@ if assigned(cat(`jets/read/flag/`,__FILE__)) then `quit`(255); fi; # force immed
 assign(cat(`jets/read/flag/`,__FILE__), true):
 
 ### Reporting macros
-ProcBaseName := proc() option inline; StringTools:-Split(convert((debugopts('callstack')[2]), string), "/")[1] end:
+ProcName := proc() option inline; debugopts('callstack')[2] end:
+ProcBaseName := proc() option inline; StringTools:-Split(convert((ProcName()), string), "/")[1] end:
 ProcBaseSymbol := proc() option inline; convert(ProcBaseName(), symbol) end:
 ProcBaseSYMBOL := proc() option inline; convert(StringTools:-UpperCase(ProcBaseName()), symbol) end:
 
 Report := proc(l, m)
   option inline;   
   `if` (evalb(`report/tab`[ProcBaseSymbol()] > l),
-        report(cat(ProcBaseSYMBOL(), '`:`'), [cat(debugopts('callstack')[2],":"), `if`(type(m,list),op(m),m)]),
+        report(cat(ProcBaseSYMBOL(), '`:`'), [cat(ProcName(),":"), `if`(type(m,list),op(m),m)]),
         NULL);
 end:
 
 Reportf := proc(l, m)
   option inline;  
   `if`(`report/tab`[ProcBaseSymbol()] > l,
-       report(cat(ProcBaseSYMBOL(), '`:`'), sprintf(cat("%a: ", op(1,m)), debugopts('callstack')[2], op(2..-1, m))),
+       report(cat(ProcBaseSYMBOL(), '`:`'), sprintf(cat("%a: ", op(1,m)), ProcName(), op(2..-1, m))),
        NULL);
 end:
 
