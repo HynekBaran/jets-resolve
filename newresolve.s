@@ -38,40 +38,40 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
                             , A1);                       
 
   Reportf(1, ["There are %a linear resolvable (%a simple and %a hard),"
-                    " %a linear NONresolvable and %a NONlinear eqs. Prices and sizes are:\n"
+                    " %a linear NONresolvable and %a NONlinear eqs. Prices, sizes, and leading Vars are:\n"
                     "LIN. RESolv.: %a,\nLIN. NONresolv: %a;\nNONLIN: %a.\n", 
                     nops(A1), nops(A1S), nops(A1H), nops(A0), nops(AN), 
-                    map(a->[a:-price,a:-size], A1), 
-                    map(a->[a:-price,a:-size], A0), 
-                    map(a->[a:-price,a:-size], AN)]); 
+                    map(a->[a:-price,a:-size, a:-LM], A1), 
+                    map(a->[a:-price,a:-size, a:-LM], A0), 
+                    map(a->[a:-price,a:-size, a:-LM], AN)]); 
 
-  Reportf(2, `if`(nops(A1)>0,  
-                 ["Linear resolvable eqs properties are [price, size, VarL, LC]:\n%s",
-                          StringTools:-Join(map(a -> sprintf("%q\n",[a:-price,a:-size,a:-Vars, a:-LC]), A1))],
-                 "No linear resolvable equation found.")) ; 
-
-  Reportf(2,  `if`(nops(A0)>0,
-                   ["Linear NONresolvable eqs properties are [price, size, VarL, LC]:\n%s", 
-                          StringTools:-Join(map(a -> sprintf("%q\n",[a:-price, a:-size, a:-Vars, a:-LC]), A0))],
-                    "No linear NONresolvable eqs found.")) ; 
-
-  Reportf(2,  `if`(nops(AN)>0,
-                   ["NONlinear eqs properties are [price, size, VarL, deg, LM, LC]:\n%s", 
-                          StringTools:-Join(map(a -> sprintf("%q\n",[a:-price, a:-size, a:-Vars, a:-degree, a:-LM, a:-LC]), AN))],
-                    "No NONlinear eqs found.")) ; 
-
-  if nops(A0) > 0 then 
-    Reportf(4, ["Linear resolvable eqs [price, size, leadVar, eq]:\n%s",
-                StringTools:-Join(map(a -> sprintf("%q\n",[a:-price,a:-size,a:-LM,a:-expr]), A0))]);
-  fi;
   if nops(A1) > 0 then 
-    Reportf(4, ["LIN NONresolvable eqs [price, size, leadVar, eq]:\n%s",
-                StringTools:-Join(map(a -> sprintf("%q\n",[a:-price,a:-size,a:-LM,a:-expr]), A1))]);
-  fi;                             
+    Reportf(2, ["Linear resolvable eqs properties are [price, size, VarL, LC]:\n%s",
+                StringTools:-Join(map(a -> sprintf("%q\n",[a:-price,a:-size,a:-Vars, a:-LC]), A1))]) ; 
+  fi;
+  if nops(A0) > 0 then 
+    Reportf(2,  ["Linear NONresolvable eqs properties are [price, size, VarL, LC]:\n%s", 
+                StringTools:-Join(map(a -> sprintf("%q\n",[a:-price, a:-size, a:-Vars, a:-LC]), A0))]) ; 
+  fi;
   if nops(AN) > 0 then 
-    Reportf(4, ["Nonlinear eqs [price, size, leadMono, eq]:\n%s",
-                StringTools:-Join(map(a -> sprintf("%q\n",[a:-price,a:-size,a:-LM,a:-expr]), AN))]);
-  fi;     
+    Reportf(2,  ["NONlinear eqs properties are [price, size, VarL, deg, LM, LC]:\n%s", 
+                 StringTools:-Join(map(a -> sprintf("%q\n",[a:-price, a:-size, a:-Vars, a:-degree, a:-LM, a:-LC]), AN))]) ; 
+  fi;
+  Reportf(4, `if`(nops(A1)>0,
+                  ["Linear resolvable eqs [price, size, leadVar, eq]:\n%s",
+                      StringTools:-Join(map(a -> sprintf("%q\n",[a:-price,a:-size,a:-LM,a:-expr]), A1))],
+                   "No linear resolvable equation found."));
+
+  Reportf(4, `if`(nops(A0)>0,
+                  ["LIN NONresolvable eqs [price, size, leadVar, eq]:\n%s",
+                      StringTools:-Join(map(a -> sprintf("%q\n",[a:-price,a:-size,a:-LM,a:-expr]), A0))],
+              "No linear NONresolvable eqs found."));
+                          
+  Reportf(4, `if`(nops(AN)>0,
+                  ["Nonlinear eqs [price, size, leadMono, eq]:\n%s",
+                      StringTools:-Join(map(a -> sprintf("%q\n",[a:-price,a:-size,a:-LM,a:-expr]), AN))],
+                  "No NONlinear eqs found."));
+    
   
 #DoReports(resolve,  [op(map(a->a:-expr,A1)), op(map(a->a:-expr,A0)),  op(map(a->a:-expr,AN))], 
 #     comment=cat(sprintf(" resolve input (#lin resolvable: %a (%a of them simple), #lin non-res.: %a #nonlin: %a):\n", 
