@@ -255,22 +255,22 @@ if assigned(cat(`jets/read/flag/`,__FILE__)) then `quit`(255); fi; # force immed
 assign(cat(`jets/read/flag/`,__FILE__), true):
 
 ### Reporting macros
-ProcName := proc() option inline; debugopts('callstack')[2] end:
-ProcBaseName := proc() option inline; StringTools:-Split(convert((ProcName()), string), "/")[1] end:
+ProcName := proc(n) option inline; debugopts('callstack')[2+3*n] end:
+ProcBaseName := proc() option inline; StringTools:-Split(convert((ProcName(0)), string), "/")[1] end:
 ProcBaseSymbol := proc() option inline; convert(ProcBaseName(), symbol) end:
 ProcBaseSYMBOL := proc() option inline; convert(StringTools:-UpperCase(ProcBaseName()), symbol) end:
 
 Report := proc(l, m)
   option inline;   
-  `if` (evalb(`report/tab`[ProcBaseSymbol()] > l),
-        report(cat(ProcBaseSYMBOL(), '`:`'), [cat(ProcName(),":"), `if`(type(m,list),op(m),m)]),
+  `if` (`report/tab`[ProcBaseSymbol()] > l, # l<=0 or ... for some magic reason wont work
+        report(cat(ProcBaseSYMBOL(), '`:`'), [cat(ProcName(0),":"), `if`(type(m,list),op(m),m)]),
         NULL);
 end:
 
 Reportf := proc(l, m)
   option inline;  
   `if`(`report/tab`[ProcBaseSymbol()] > l,
-       report(cat(ProcBaseSYMBOL(), '`:`'), sprintf(cat("%a: ", op(1,m)), ProcName(), op(2..-1, m))),
+       report(cat(ProcBaseSYMBOL(), '`:`'), sprintf(cat("%a: ", op(1,m)), ProcName(0), op(2..-1, m))),
        NULL);
 end:
 
@@ -304,6 +304,21 @@ else
   # we have Maple 15 (or newer)
   compat[Record[packed]] := Record[packed]:
 fi:
+
+#
+# Aux macros
+#
+
+# create generator of integer sequence
+NewIntSeq := proc(initvalue::integer:=0) 
+  local i := initvalue;
+  proc({`set`::{integer,identical(NULL)}:=NULL, `get`::truefalse:=false})
+    if type(`set`, integer) then i := `set`;
+    elif `get` then return i;
+    else i := i+1
+    fi;
+  end
+end:
 
 ###########################################################################################
 ###########################################################################################
@@ -5593,17 +5608,6 @@ end module:
 ###################################################################################################
 # General auxiliary utilities
 ###################################################################################################
-
-# create generator of integer sequence
-NewIntSeq := proc(initvalue::integer:=0) 
-  local i := initvalue;
-  proc({`set`::{integer,identical(NULL)}:=NULL, `get`::truefalse:=false})
-    if type(`set`, integer) then i := `set`;
-    elif `get` then return i;
-    else i := i+1
-    fi;
-  end
-end:
 
 #
 # assertions
