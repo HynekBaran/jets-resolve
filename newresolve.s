@@ -9,7 +9,7 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
 #`resolve/nonresrat` := 3;
 
 `resolve/1` := proc()
-  local as,bs,as1, as2, cs,  ds, vl,i,ans, A, AL, AN, A1, A0, A1S, A1H, B, ff;
+  local as,bs,as1, as2, cs,  ds, vl,i,ans, A, AL, AN, A1, A0, A1S, A1H, AE, B, ff;
   global `resolve/nonresrat`;
   Report(1, cat(`input `, nops([args])));   
   as := MaP(numer,{args}) minus {0};
@@ -31,14 +31,10 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
   A := sizesort(A, a->a:-price);
   AL, AN := selectremove(a->a:-kind = 'linear', A); # nonlin, lin
   A1, A0 := selectremove(a->a:-solvable=true, AL); # resolvable, nonresolvable
-  A1S, A1H := selectremove( a -> (nops(a:-Vars)<=1) # simple, hard 
-                            # or a:-rest=0 or type(a:-subs, monomial(constant, a:-Vars))
-                            #a->a:-price<2 
-                            #or type(a:-LC, numeric) or a:-leadLinCoeffVars={} 
-                            , A1);                       
+  A1S, A1H :=`resolve/simplehard`(A1);                       
 
   Reportf(1, ["There are %a linear resolvable (%a simple and %a hard),"
-                    " %a linear NONresolvable and %a NONlinear eqs. Prices, sizes, and leading Vars are:\n"
+                    " %a linear NONresolvable and %a NONlinear eqs. Prices, sizes, and leading monomials are:\n"
                     "LIN. RESolv.: %a,\nLIN. NONresolv: %a;\nNONLIN: %a.\n", 
                     nops(A1), nops(A1S), nops(A1H), nops(A0), nops(AN), 
                     map(a->[a:-price,a:-size, a:-LM], A1), 
@@ -122,41 +118,62 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
   #     sprintf("# prices=%q\n", map(a->a:-price, B)),
   #     sprintf("# sizes =%q\n", map(size, B)),
   #     sprintf("# LVars=%q\n", map(a->a:-Vars[1], B))));  
-  
+   
   ans := `resolve/lin`(convert(B, set), vl, ForceFail=ff);
+
+  if ans = FAIL and nops(AN)>= 2 then
+
+    Reportf(2, ["No solvable linear eqs found, trying to combine nonlinear eqs pairs into linear"]);
+    AE := `resolve/nonlin/combine`(AN);
+    Reportf(-1000, ["Combining %a nonlinear eqs given %a linear results", nops(AN), nops(AE)]);
+    Reportf(2, ["...witch properties are [price, size, VarL, LC]:\n%s",
+                StringTools:-Join(map(a -> sprintf("%q\n",[a:-price,a:-size,a:-Vars, a:-LC]), AE))]); 
+    vl := ListTools:-Reverse(sort([op(`union`(op(map(a -> convert(a:-Vars,set), AE))))],  `Vars/<<`)); # present Vars in resolvable eqs.
+    if vl = [] then ERROR(`no unknowns`, as) fi; 
+    ans := `resolve/lin`(convert(AE, set), vl, ForceFail=ff, keepfails);
+  fi;  
   
   DoReports(resolve, [ans],comment=" resolve output");
   return (ans);
   #####fi;
 end:
 
-`resolve/collectdata` := proc(b, {source:=NULL}) 
-  local a, V, LC, LCV, LM, r,s, Cs, Ms, deg;
+
+`resolve/simplehard` := proc(as::list(record))
+  selectremove( a -> (nops(a:-Vars)<=1 or a:-rest=0 ) # simple, hard 
+                            # or type(a:-subs, monomial(constant, a:-Vars))
+                            #a->a:-price<2 
+                            #or type(a:-LC, numeric) or a:-leadLinCoeffVars={} 
+                            , as);
+end: 
+
+`resolve/collectdata` := proc(b, {source:='`?`'})
+  local a, Vs, LC, LCV, LM, r,s, Cs, Ms, deg;
   a := Simpl(b);  
-  V := VarL(b);
-  if nops(V)=0 then # no unknowns
+  Vs := VarL(b);
+  if nops(Vs)=0 then # no unknowns
     tprint("No unknowns in ", a);
     return NULL;
   fi;
 
-  #a := `resolve/lin/reduce`(a, V);
-  #if not(frontend(ispoly, [a, linear, V[1], 'r', 'LC'])) then  # nonlinear or non-polynomial case  
-  #Cs, Ms, deg := coeffsV(a, V);    
+  #a := `resolve/lin/reduce`(a, Vs);
+  #if not(frontend(ispoly, [a, linear, Vs[1], 'r', 'LC'])) then  # nonlinear or non-polynomial case  
+  #Cs, Ms, deg := coeffsV(a, Vs);    
   #LC := Cs[1]; LM := Ms[1]; ### bug, leading monimial can be at arbitrary position in the list          
 
-  LC, LM, deg := coeffL(a,V);  
+  LC, LM, deg := coeffL(a,Vs);  
 
-  if not(type(a, linear(V[1]))) then  
+  if not(type(a, linear(Vs[1]))) then  
     # nonlinear or non-polynomial case
-    Report(4, ["NONLinear case", "LC"=LC, "LM"=LM, "deg"=deg, "V"=V]);
-    assert([not(type(a, linear(V[1]))), 
+    Report(4, ["NONLinear case", "LC"=LC, "LM"=LM, "deg"=deg, "Vs"=Vs]);
+    assert([not(type(a, linear(Vs[1]))), 
           "Implementation error, failed to compute leading coeff (in VarL %a) of linear expression %a", 
-          V,a], callstackskip=1);
+          Vs,a], callstackskip=1);
     return compat[Record[packed]](
                           "expr"=a, 
                           "reduced"=NULL,                          
                           "kind"='nonlinear',
-                          "Vars"=V, 
+                          "Vars"=Vs, 
                           "degree"=deg,
                           "LC"=LC,
                           "LM"=LM,                          
@@ -170,20 +187,20 @@ end:
                           )
   else 
     # linear case
-    assert([type(a, linear(V[1])), 
+    assert([type(a, linear(Vs[1])), 
             "Implementation error, found leading coeff %a (in VarL %a) of nonlinear expression %a", 
-            Cs[1], V, a], callstackskip=1);
+            Cs[1], Vs, a], callstackskip=1);
    
-    LC := collect(LC, V, simpl, distributed); 
-    r := collect(a-LC*LM, V, simpl, distributed);
-    #s := collect(-r/LC, V, simpl, distributed);
+    LC := collect(LC, Vs, simpl, distributed); 
+    r := collect(a-LC*LM, Vs, simpl, distributed);
+    #s := collect(-r/LC, Vs, simpl, distributed);
     #LCV := Vars(LC);
-    Report(4, ["Linear case", "LC"=LC, "LM"=LM, "deg"=deg, "V"=V]);
+    Report(4, ["Linear case", "LC"=LC, "LM"=LM, "deg"=deg, "Vs"=Vs]);
     return compat[Record[packed]](
                           "expr"=a, 
                           "reduced"=NULL,
                           "kind"='linear',
-                          "Vars"=V, 
+                          "Vars"=Vs, 
                           "degree"=deg,
                           "LC"=LC,                          
                           "LM"=LM,                          
@@ -199,28 +216,117 @@ end:
   fi
 end:
 
-coeffsV := proc(F, vs := Vars(F), {CF::{procedure,name}:=proc(x) option inline; x end})
+coeffsV := proc(F, Vs := Vars(F), {CF::{procedure,name}:=proc(x) option inline; x end})
   description "collects a given polynomial w. r. to its variables "
               "and returns list of coefficients, list of monomials and degree w. r. to leading variable."
                "keyword CF may specify a collecting function (applied to coefficients)";
   local f, k, l, d ;
-  f := collect(F, vs, CF, distributed);
-  k := coeffs(f, vs[1], l); 
-  d := max(op(map(degree, [l], vs[1])));
+  f := collect(F, Vs, CF, distributed);
+  k := coeffs(f, Vs[1], l); 
+  d := max(op(map(degree, [l], Vs[1])));
   [k],[l], d;
 end:
 
 
-coeffL := proc(F, vs := Vars(F), {CF::{procedure,name}:=proc(x) option inline; x end})
+coeffL := proc(F, Vs := Vars(F), {CF::{procedure,name}:=proc(x) option inline; x end})
   description "collects a given polynomial w. r. to its variables "
               "and returns leading coefficient, leading monomial and degree w. r. to leading variable."
                "keyword CF may specify a collecting function (applied to coefficients)";
   local f, LC, LM, d ;
-  f := collect(F, vs, CF, distributed);
-  LC := lcoeff(f, vs[1], LM); 
-  d := degree(LM, vs[1]);
+  f := collect(F, Vs, CF, distributed);
+  LC := lcoeff(f, Vs[1], LM); 
+  d := degree(LM, Vs[1]);
   LC, LM, d;
 end:
+
+
+### linearize combined nonlinear pairs (by multiples of remainders)
+
+`resolve/nonlin/combine` := proc(as::list(record))
+  local Vs, res;
+  # collect leading Vars 
+  Vs := convert(map(proc(a)  a:-Vars[1]; end, as), set);
+  # apply  `resolve/nonlin/combine/V` on subclasses of as distinguished by leading Var
+  res := map(proc(LV) local bs := select(a -> a:-Vars[1] = LV, as); `resolve/nonlin/combine/LV`(LV, bs) end, Vs);
+  return sizesort(map(`resolve/collectdata`, res, source='procname'), a->a:-size);
+end:
+
+`resolve/nonlin/combine/LV` := proc (LV, bs)
+  local cs;
+  Reportf(1, ["combining %a nonlinear eqs with leading Var %a", nops(bs), LV]);
+  return `resolve/nonlin/combine/LV/r`(bs);
+end;
+
+`resolve/nonlin/combine/LV/r` := proc(bs)
+  local r1, rr;
+  if nops(bs) < 2 then 
+    return NULL
+  else
+    r1 := op(map2((f,g) -> `resolve/nonlin/combine/2`(f:-expr, g:-expr) , bs[1], bs[2..-1]));
+    rr := thisproc(bs[2..-1]);
+    return r1, rr;
+  fi;
+end:
+
+`resolve/nonlin/combine/2` := proc(f,g)
+  local Vsf, Vsg, LV, LCf, LCg, cf, cg, tf, tg, df, dg;
+  Vsf := VarL(f);
+  Vsg := VarL(g);
+  Report(5, [f,g]);
+  # leading Var
+  if  Vsf[1] <>  Vsg[1] then 
+    error ("Different leading Vars %1, %2",Vsf[1], Vsg[1]); 
+  else
+    LV :=  Vsf[1];
+  fi;
+  # assuming Simpl(a, [V1]) is already done;
+  # coeficciens and terms
+  try
+    cf := coeffs(f, LV, tf);
+  catch "invalid arguments to coeffs":
+     Report(0, ["f not polynomial?", LV, f]);
+     return NULL;
+  end try;
+  try
+    cg := coeffs(g, LV, tg);
+  catch "invalid arguments to coeffs":
+     Report(0, ["g not polynomial?", LV, g]);
+      return NULL;
+  end try;
+  #if tf[1] = tg[1] then
+  #  # polynomials of the same order
+  #  LCf := collect(cf[1], Vf, simpl, distributed);
+  #  LCg := collect(cg[1], Vg, simpl, distributed);
+  #  return simpl(LCg*f - LCf*g);
+  #else
+    df := degree(tf[1], LV);
+    dg := degree(tg[1], LV);
+    LCf := collect(cf[1], Vf, simpl, distributed);
+    LCg := collect(cg[1], Vg, simpl, distributed);    
+    if df >= dg then
+       `resolve2/rem`(f, g, LCf, LCg, df, dg, LV, Vsg)
+    else
+       `resolve2/rem`(g, f, LCg, LCg, dg, df, LV, Vsf)
+    fi; 
+  #fi;
+end:
+
+
+`resolve2/rem` := proc (f, g, LCf, LCg, df::integer, dg::integer, LV, Vs::list, $)
+  description "Remainder of (appropriate multiple of f) and (g) to avoid div by 0";
+  local K;
+  K := LCg^(df-dg+1);
+  simpl(frontend(rem, [K*f, g, LV]))
+end:
+
+#`resolve2/rem` := proc (f, g, LCf, LCg, df::integer, dg::integer, LV, Vs::list, $)
+#  if type(LCg, 'nonzero') then
+#    frontend(rem, [f, g, LV]);
+#  else
+#    lprint("`resolve2/rem` failed for ", LV, "nonzero coeff is", LCg);
+#    `resolve/fails/collect`('remainder', 'procname', [f,g], LV, Vs, LCg, [df, dg]);
+#  fi;
+#end:
 
 ### linear resolve
 
@@ -289,12 +395,10 @@ end:
   ### rat := `resolve/nonresrat/test`(os, map(lhs-rhs, ans)); 
 
   Report(0, [`bobo`, nops(ans), nops(aux), nops(rs)]);
-  Report(3, ["soso", ans, aux, rs]);
-
 
   if ans = {} then
     map(proc(a) 
-          local LC := coeff(a, LVar(a)); ### chyba! to je koeficient u lineárního členu
+          local LC := lcoeff(a, LVar(a)); ### je to ok??????
           `resolve/fails/collect`( `if`(type(a, linear(LVar(a))), 'linear', 'nonlinear'),
                                   'procname', a, LVar(a), VarL(a),  LC, degree(a, LVar(a)), 'solvable'=type(LC, 'nonzero'))
         end,
@@ -318,6 +422,9 @@ end:
 
 `resolve/lin/price` := proc(r)  option inline; size(r) end:
 
+
+### resolve fail reporting
+
 `resolve/reportfail` := proc(AL, AN)
   map(`resolve/reportfail/lin`, AL);
   map(`resolve/reportfail/nonlin`, AN);
@@ -336,6 +443,7 @@ end:
   print(a:-expr);
 end:
 
+### resolve fail Reporter
 
 reporters[resolve]:= []:  # no reporting by default
  
@@ -469,7 +577,7 @@ end:
 
 `resolve/fails/table` := `resolve/fails/clear`(): # global
 
-`resolve/fails/table/counter` := NewIntSeq():
+`resolve/fails/table/counter` := NewIntSeq(): # NewIntSeq must be defined BEFORE this line
 
 `resolve/fails/clear` := proc()
   global `resolve/fails/table`, `resolve/fails/table/counter`;
@@ -481,6 +589,7 @@ end:
   global RESOLVE, `resolve/fails/table`, `resolve/fails/table/counter`;
   local i ;
   i := `resolve/fails/table/counter`();
+  lprint("collecting", i, expr);
   # backward compatibility
   if kind='linear' then
     RESOLVE := [op(RESOLVE), [LC, LV, -(expr-LC*LV)]]
