@@ -322,11 +322,13 @@ end:
 end:
 
 `resolve/nonlin/combine/2/rem` := proc (f, g, LCf, LCg, df::integer, dg::integer, LV, Vs::list, $)
+  local res;
+  res := frontend(rem, [f, g, LV]);
   if type(LCg, 'nonzero') then
-    frontend(rem, [f, g, LV]);
+    return res;
   else
     lprint("`resolve2/rem` failed for ", LV, "nonzero coeff is", LCg);
-    `resolve/fails/collect`('remainder', 'procname', [f,g], LV, Vs, LCg, [df, dg]);
+    `resolve/fails/collect`('remainder', 'procname', res, LV, Vs, LCg, [df, dg]);
   fi;
 end:
 
@@ -587,7 +589,7 @@ end:
   `resolve/fails/table/counter`('set'=0);
 end:
 
-`resolve/fails/collect` := proc(kind::symbol, source::uneval, expr, LV, Vs::list, LC, deg::integer, {solvable::truefalse:=NULL}, $)
+`resolve/fails/collect` := proc(kind::symbol, source::uneval, expr, LV, Vs::list, LC, deg, {solvable::truefalse:=NULL}, $)
   global RESOLVE, `resolve/fails/table`, `resolve/fails/table/counter`;
   local i ;
   i := `resolve/fails/table/counter`();
@@ -625,7 +627,7 @@ end:
   elif kind = 'nonlinear' then
     printf("^%a", T['deg']);
     print(smash(T['expr']));
-  elif kind = 'reminder' then
+  elif kind = 'remainder' then
     printf("with polynoms of degrees %a and where the problematic leading coefficient of divisor is", T['deg']);
     print(smash(T['LC']));
   else
