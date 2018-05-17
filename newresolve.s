@@ -269,6 +269,7 @@ end;
 end:
 
 `resolve/nonlin/combine/2` := proc(f,g)
+  global `resolve/nonlin/combine/2/tool`;
   local Vsf, Vsg, LV, LCf, LCg, cf, cg, tf, tg, df, dg;
   Vsf := VarL(f);
   Vsg := VarL(g);
@@ -304,29 +305,30 @@ end:
     LCf := collect(cf[1], Vf, simpl, distributed);
     LCg := collect(cg[1], Vg, simpl, distributed);    
     if df >= dg then
-       `resolve2/rem`(f, g, LCf, LCg, df, dg, LV, Vsg)
+       `resolve/nonlin/combine/2/tool`(f, g, LCf, LCg, df, dg, LV, Vsg)
     else
-       `resolve2/rem`(g, f, LCg, LCg, dg, df, LV, Vsf)
+       `resolve/nonlin/combine/2/tool`(g, f, LCg, LCg, dg, df, LV, Vsf)
     fi; 
   #fi;
 end:
 
+`resolve/nonlin/combine/2/tool` := `resolve/nonlin/combine/2/pseudorem`:
 
-`resolve2/rem` := proc (f, g, LCf, LCg, df::integer, dg::integer, LV, Vs::list, $)
+`resolve/nonlin/combine/2/pseudorem` := proc (f, g, LCf, LCg, df::integer, dg::integer, LV, Vs::list, $)
   description "Remainder of (appropriate multiple of f) and (g) to avoid div by 0";
   local K;
   K := LCg^(df-dg+1);
   simpl(frontend(rem, [K*f, g, LV]))
 end:
 
-#`resolve2/rem` := proc (f, g, LCf, LCg, df::integer, dg::integer, LV, Vs::list, $)
-#  if type(LCg, 'nonzero') then
-#    frontend(rem, [f, g, LV]);
-#  else
-#    lprint("`resolve2/rem` failed for ", LV, "nonzero coeff is", LCg);
-#    `resolve/fails/collect`('remainder', 'procname', [f,g], LV, Vs, LCg, [df, dg]);
-#  fi;
-#end:
+`resolve/nonlin/combine/2/rem` := proc (f, g, LCf, LCg, df::integer, dg::integer, LV, Vs::list, $)
+  if type(LCg, 'nonzero') then
+    frontend(rem, [f, g, LV]);
+  else
+    lprint("`resolve2/rem` failed for ", LV, "nonzero coeff is", LCg);
+    `resolve/fails/collect`('remainder', 'procname', [f,g], LV, Vs, LCg, [df, dg]);
+  fi;
+end:
 
 ### linear resolve
 

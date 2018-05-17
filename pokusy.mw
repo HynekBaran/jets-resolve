@@ -455,42 +455,6 @@ Using the new implementation of resolve (not well tested yet!)</Text-field>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
-<Group labelreference="L233" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
-<Input>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal">`resolve/nonlin/combine/2`(A2*C^2 + A1*C + A0, 2*A2*C^2 + A1*C + A0)</Text-field>
-</Input>
-<Output>
-<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUYjNigtSSNtaUdGJDYlUSNBMUYnLyUnaXRhbGljR1EldHJ1ZUYnLyUsbWF0aHZhcmlhbnRHUSdpdGFsaWNGJy1JI21vR0YkNi1RMSZJbnZpc2libGVUaW1lcztGJy9GNVEnbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj8vJSlzdHJldGNoeUdGPy8lKnN5bW1ldHJpY0dGPy8lKGxhcmdlb3BHRj8vJS5tb3ZhYmxlbGltaXRzR0Y/LyUnYWNjZW50R0Y/LyUnbHNwYWNlR1EmMC4wZW1GJy8lJ3JzcGFjZUdGTi1GLjYlUSNBMkYnRjFGNEY3LUYuNiVRIkNGJ0YxRjRGOy1GODYtUSIrRidGO0Y9RkBGQkZERkZGSEZKL0ZNUSwwLjIyMjIyMjJlbUYnL0ZQRmVuLUYjNiYtRi42JVEjQTBGJ0YxRjRGN0ZRRjtGOw==">LCYqKEkjQTFHNiIiIiJJI0EyR0YlRiZJIkNHRiVGJkYmKiZJI0EwR0YlRiZGJ0YmRiY=</Equation></Text-field>
-</Output>
-</Group>
-<Group labelreference="L232" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
-<Input>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal">print(`resolve/fails/table`);</Text-field>
-</Input>
-<Output>
-<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEmdGFibGVGJy8lJ2l0YWxpY0dRJXRydWVGJy8lLG1hdGh2YXJpYW50R1EnaXRhbGljRictSShtZmVuY2VkR0YkNiQtRiM2JS1GNjYmLUYjNiktRiM2Jy1JI21uR0YkNiRRIjFGJy9GM1Enbm9ybWFsRictSSNtb0dGJDYtUSI9RidGRC8lJmZlbmNlR1EmZmFsc2VGJy8lKnNlcGFyYXRvckdGTC8lKXN0cmV0Y2h5R0ZMLyUqc3ltbWV0cmljR0ZMLyUobGFyZ2VvcEdGTC8lLm1vdmFibGVsaW1pdHNHRkwvJSdhY2NlbnRHRkwvJSdsc3BhY2VHUSwwLjI3Nzc3NzhlbUYnLyUncnNwYWNlR0Zlbi1GIzYmRistRjY2JC1GIzYlLUY2NiYtRiM2My1GIzYnLUYsNiVRI1ZzRidGL0YyRkYtRjY2Ji1GIzYlLUYsNiVRIkNGJ0YvRjIvJStmb3JlZ3JvdW5kR1EoWzAsMCwwXUYnRkRGRC8lJW9wZW5HUSJbRicvJSZjbG9zZUdRIl1GJ0ZecEZELUZHNi1RIixGJ0ZERkovRk5GMUZPRlFGU0ZVRlcvRlpRJjAuMGVtRicvRmduUSwwLjMzMzMzMzNlbUYnLUYjNictRiw2JVEjTFZGJ0YvRjJGRkZbcEZecEZERmdwLUYjNictRiw2JVEla2luZEYnRi9GMkZGLUYsNiVRKm5vbmxpbmVhckYnRi9GMkZecEZERmdwLUYjNictRiw2JVEkZGVnRidGL0YyRkYtRkE2JFEiMkYnRkRGXnBGREZncC1GIzYnLUYsNiVRJWV4cHJGJ0YvRjJGRi1GIzYoLUYjNiYtRiw2JVEjQTJGJ0YvRjItRkc2LVExJkludmlzaWJsZVRpbWVzO0YnRkRGSkZNRk9GUUZTRlVGV0ZbcS9GZ25GXHEtSSVtc3VwR0YkNiVGW3BGYXIvJTFzdXBlcnNjcmlwdHNoaWZ0R1EiMEYnRkQtRkc2LVEiK0YnRkRGSkZNRk9GUUZTRlVGVy9GWlEsMC4yMjIyMjIyZW1GJy9GZ25GXnQtRiM2Ji1GLDYlUSNBMUYnRi9GMkZgc0ZbcEZERmpzLUYsNiVRI0EwRidGL0YyRkRGXnBGREZncC1GIzYnLUYsNiVRJ3NvdXJjZUYnRi9GMkZGLUYjNictRkc2LVEiJ0YnRkRGSkZNRk9GUUZTRlVGVy9GWlEsMC4xMTExMTExZW1GJ0Zjcy1GLDYlUSh1bmtub3duRidGL0YyRl91Rl5wRkRGXnBGREZncC1GIzYnLUYsNiVRI0xDRidGL0YyRkZGXXNGXnBGREZncC1GIzYnLUYsNiVRKXNvbHZhYmxlRidGL0YyRkYtRiw2JUZMRi9GMkZecEZERl5wRkRGREZhcEZkcEZecEZERkRGXnBGREZecEZERmdwLUYjNidGYXJGRi1GIzYmRistRjY2JC1GIzYlLUY2NiYtRiM2M0Zib0ZncEZfcUZncEZkcUZncEZcckZncC1GIzYnRmZyRkYtRiM2KC1GIzYoRmFyRmBzRl1zRmBzRmRzRkRGanNGYHRGanNGZXRGREZecEZERmdwRmh0RmdwLUYjNidGaXVGRi1GIzYmRmFyRmBzRl1zRkRGXnBGREZncEZcdkZecEZERkRGYXBGZHBGXnBGREZERl5wRkRGXnBGREZncC1GIzYnLUZBNiRRIjNGJ0ZERkYtRiM2JkYrLUY2NiQtRiM2JS1GNjYmLUYjNjNGYm9GZ3BGX3FGZ3AtRiM2J0ZmcUZGLUYsNiVRJ2xpbmVhckYnRi9GMkZecEZERmdwLUYjNidGXnJGRkZARl5wRkRGZ3AtRiM2J0ZmckZGLUYjNiYtRiM2KEZidEZgc0Zdc0Zgc0ZbcEZERmpzLUYjNiZGZXRGYHNGXXNGREZERl5wRkRGZ3BGaHRGZ3AtRiM2J0ZpdUZGLUYjNiZGYnRGYHNGXXNGREZecEZERmdwRlx2Rl5wRkRGREZhcEZkcEZecEZERkRGXnBGREZecEZERl5wRkRGREZhcEZkcEZecEZERkRGXnBGRA==">STRyZXNvbHZlL2ZhaWxzL3RhYmxlRzYi</Equation></Text-field>
-</Output>
-</Group>
-<Group labelreference="L231" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
-<Input>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
-</Input>
-</Group>
-<Group labelreference="L230" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
-<Input>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
-</Input>
-</Group>
-<Group labelreference="L229" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
-<Input>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
-</Input>
-</Group>
-<Group labelreference="L227" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
-<Input>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
-</Input>
-</Group>
 <Group labelreference="L226" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
@@ -646,7 +610,7 @@ Using the new implementation of resolve (not well tested yet!)</Text-field>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal">`resolve/fails/table/counter`()</Text-field>
 </Input>
 <Output>
-<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">IiIl</Equation></Text-field>
+<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">IiIn</Equation></Text-field>
 </Output>
 </Group>
 <Group labelreference="L260" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
@@ -654,7 +618,7 @@ Using the new implementation of resolve (not well tested yet!)</Text-field>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal">`resolve/fails/table/counter`()</Text-field>
 </Input>
 <Output>
-<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">IiIm</Equation></Text-field>
+<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">IiIo</Equation></Text-field>
 </Output>
 </Group>
 <Group labelreference="L259" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
