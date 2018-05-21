@@ -11,11 +11,11 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
 `resolve/1` := proc()
   local as,bs,as1, as2, cs,  ds, vl,i,ans, A, AL, AN, A1, A0, A1S, A1H, AE, B, ff;
   global `resolve/nonresrat`;
-  Report(1, cat(`input `, nops([args])));   
+  Report(2, cat(`input `, nops([args])));   
   as := MaP(numer,{args}) minus {0};
-  Report(1, cat(`numer `, nops(as))); 
+  Report(2, cat(`numer `, nops(as))); 
   as := MaP(divideout, as)  minus {0}; # remove nonzero factors
-  Report(1, cat(`divideout `, nops(as))); 
+  Report(2, cat(`divideout `, nops(as))); 
   bs := select(type, as, nonzero);
   Report(3, [cat(`contradictory `, nops(bs), ` eqns `), bs]); 
   if bs <> {} then print(op(map(proc(b) b = 0 end, bs)));
@@ -25,7 +25,7 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
   #as := MaP(Simpl,as);
   #if rt > 1 then report(lb,cat(`Simpl `, nops(as))) fi; 
   as := MaP(reduceprod,as) minus {0};  
-  Report(1, cat(`reduceprod `, nops(as))); 
+  Report(2, cat(`reduceprod `, nops(as))); 
   
   A := MaP(`resolve/collectdata`, convert(as,list), source=''procname'');
   A := sizesort(A, a->a:-price);
@@ -125,11 +125,11 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
 
     Reportf(2, ["No solvable linear eqs found, trying to combine nonlinear eqs pairs into linear"]);
     AE := `resolve/nonlin/combine`(AN);
-    Reportf(-1000, ["Combining %a nonlinear eqs given %a linear results", nops(AN), nops(AE)]);
+    Reportf(1, ["Combining %a nonlinear eqs given %a linear results", nops(AN), nops(AE)]);
     Reportf(2, ["...witch properties are [price, size, VarL, LC]:\n%s",
                 StringTools:-Join(map(a -> sprintf("%q\n",[a:-price,a:-size,a:-Vars, a:-LC]), AE))]); 
     vl := ListTools:-Reverse(sort([op(`union`(op(map(a -> convert(a:-Vars,set), AE))))],  `Vars/<<`)); # present Vars in resolvable eqs.
-    if vl = [] then ERROR(`no unknowns`, as) fi; 
+    Reportf(0, ["Combined %a linear eqs out of %a nonlinear", nops(vl), nops(AN)]); 
     ans := `resolve/lin`(convert(AE, set), vl, ForceFail=ff, keepfails);
   fi;  
   
@@ -258,13 +258,14 @@ end:
 end;
 
 `resolve/nonlin/combine/LV/r` := proc(bs)
-  local r1, rr;
+  local rfg, rgf, rr;
   if nops(bs) < 2 then 
     return NULL
   else
-    r1 := op(map2((f,g) -> `resolve/nonlin/combine/2`(f:-expr, g:-expr) , bs[1], bs[2..-1]));
+    rfg := op(map2((f,g) -> `resolve/nonlin/combine/2`(f:-expr, g:-expr) , bs[1], bs[2..-1]));
+    rgf := op(map2((f,g) -> `resolve/nonlin/combine/2`(g:-expr, f:-expr) , bs[1], bs[2..-1]));
     rr := thisproc(bs[2..-1]);
-    return r1, rr;
+    return rfg, rgf, rr;
   fi;
 end:
 
@@ -323,11 +324,20 @@ end:
   description "Remainder of (appropriate multiple of f) and (g) to avoid div by 0";
   local K;
   K := LCg^(df-dg+1);
+  Reportf(5, ["Combining (%a) * (%a) and %a", K, f, g]);
   frontend(rem, [K*f, g, LV])
 end:
 
 `resolve/nonlin/combine/2/rem` := proc (f, g, LCf, LCg, df::integer, dg::integer, LV, Vs::list, $)
-  frontend(rem, [f, g, LV]);
+  local res;
+  res := frontend(rem, [f, g, LV]);
+  if type(LCg, 'nonzero') then
+    return res;
+  else
+    lprint("`resolve2/rem` failed for ", LV, "nonzero coeff is", LCg);
+    `resolve/fails/collect`('remainder', 'procname', res, LV, Vs, LCg, [df, dg]);
+    return NULL;
+  fi;
 end:
 
 ### linear resolve
@@ -346,10 +356,10 @@ end:
   Report(0, [`resolving`, nops(ds), `out of`, nops(ds), `eqns in `, nops(vl), `unknowns`]) ; 
 
   for v in vl do # for v running through all Vars in reverse Varordering
-    Report(2, [`resolving with respect to`, v]); 
     #`resolve/lin/reduce`(bs, vl); ### called above
     cs := select(proc(b) has(b:-reduced, v) end, bs);  # cs = subset of bs with v 
-    Report(2, [`resolving`, nops(cs), `equations`, `with respect to`, v, `: `, cs]); 
+    Report(2, [`resolving`, nops(cs), `equations`, `with respect to`, v]); 
+    Report(5, [`resolving eqs`, cs]); 
     bs := bs minus cs;  # bs = subset without v
     ### linear?
     ls, ns := selectremove(a->a:-kind='linear', cs);  # ls = subset of cs linear in v
@@ -591,9 +601,9 @@ end:
   global RESOLVE, `resolve/fails/table`, `resolve/fails/table/counter`;
   local i ;
   i := `resolve/fails/table/counter`();
-  Report(5, "collecting", i, [args]);
+  Report(5, ["collecting", i, [args]]);
   # backward compatibility
-  if kind='linear' then
+  if kind='linear'  or kind ='remainder' then
     RESOLVE := [op(RESOLVE), [LC, LV, -(expr-LC*LV)]]
   elif kind='nonlinear' then
     RESOLVE := [op(RESOLVE), [expr, LV]]
@@ -621,15 +631,12 @@ end:
   tprint(sprintf("%a. %s %a solving failed in %a", 
                   op(i), slv, kind, T['LV']),
          newline=false);
-  if kind = 'linear' then
+  if kind = 'linear' or kind ='remainder' then
     tail := T['expr'] - T['LC']*T['LV'];
     print (smash(T['LC'])*T['LV'] = -smash(tail));    
   elif kind = 'nonlinear' then
     printf("^%a", T['deg']);
     print(smash(T['expr']));
-  elif kind = 'remainder' then
-    printf("with polynoms of degrees %a and where the problematic leading coefficient of divisor is", T['deg']);
-    print(smash(T['LC']));
   else
     error "Wrong kind %1", kind;
   fi;
