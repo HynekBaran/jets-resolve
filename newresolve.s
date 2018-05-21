@@ -270,7 +270,7 @@ end:
 
 `resolve/nonlin/combine/2` := proc(f,g)
   global `resolve/nonlin/combine/2/tool`;
-  local Vsf, Vsg, LV, LCf, LCg, cf, cg, tf, tg, df, dg;
+  local Vsf, Vsg, LV, LCf, LCg, cf, cg, tf, tg, df, dg, res;
   Vsf := VarL(f);
   Vsg := VarL(g);
   Report(5, [f,g]);
@@ -305,11 +305,16 @@ end:
     LCf := collect(cf[1], Vf, simpl, distributed);
     LCg := collect(cg[1], Vg, simpl, distributed);    
     if df >= dg then
-       `resolve/nonlin/combine/2/tool`(f, g, LCf, LCg, df, dg, LV, Vsg)
+      Reportf(2, ["Combining polynomials in %a, %a", tf[1], tg[1]]); 
+       res := `resolve/nonlin/combine/2/tool`(f, g, LCf, LCg, df, dg, LV, Vsg);
+       #res := collect(res, Vsf, simpl, distributed);
     else
-       `resolve/nonlin/combine/2/tool`(g, f, LCg, LCg, dg, df, LV, Vsf)
+      Reportf(2, ["Combining polynomials in %a, %a", tg[1], tf[1]]); 
+       res := `resolve/nonlin/combine/2/tool`(g, f, LCg, LCg, dg, df, LV, Vsf);
+       #res := collect(res, Vsg, simpl, distributed);
     fi; 
   #fi;
+  return res;
 end:
 
 `resolve/nonlin/combine/2/tool` := `resolve/nonlin/combine/2/pseudorem`:
@@ -318,18 +323,11 @@ end:
   description "Remainder of (appropriate multiple of f) and (g) to avoid div by 0";
   local K;
   K := LCg^(df-dg+1);
-  simpl(frontend(rem, [K*f, g, LV]))
+  frontend(rem, [K*f, g, LV])
 end:
 
 `resolve/nonlin/combine/2/rem` := proc (f, g, LCf, LCg, df::integer, dg::integer, LV, Vs::list, $)
-  local res;
-  res := frontend(rem, [f, g, LV]);
-  if type(LCg, 'nonzero') then
-    return res;
-  else
-    lprint("`resolve2/rem` failed for ", LV, "nonzero coeff is", LCg);
-    `resolve/fails/collect`('remainder', 'procname', res, LV, Vs, LCg, [df, dg]);
-  fi;
+  frontend(rem, [f, g, LV]);
 end:
 
 ### linear resolve
@@ -593,12 +591,14 @@ end:
   global RESOLVE, `resolve/fails/table`, `resolve/fails/table/counter`;
   local i ;
   i := `resolve/fails/table/counter`();
-  lprint("collecting", i, expr);
+  Report(5, "collecting", i, [args]);
   # backward compatibility
   if kind='linear' then
     RESOLVE := [op(RESOLVE), [LC, LV, -(expr-LC*LV)]]
   elif kind='nonlinear' then
     RESOLVE := [op(RESOLVE), [expr, LV]]
+  else
+    error "unknown kind %1", kind;
   fi;
   # central fail storage
   `resolve/fails/table`[i] := table([
