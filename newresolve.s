@@ -9,7 +9,7 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
 #`resolve/nonresrat` := 3;
 
 `resolve/1` := proc()
-  local as,bs,as1, as2, cs,  ds, vl,i,ans, A, AL, AN, A1, A0, A1S, A1H, AE, B, ff;
+  local as,bs,as1, as2, cs,  ds, vl,i,ans, A, AL, AN, A1, A0, A1S, A1H, AE, APD, B, ff;
   global `resolve/nonresrat`;
   Report(2, cat(`input `, nops([args])));   
   as := MaP(numer,{args}) minus {0};
@@ -85,7 +85,7 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
 #       sprintf("# LVars(nonlin)=%q\n", map(a->a:-Vars[1], AN))));
     
   if nops(A1) = 0 then
-    `resolve/reportfail`(AL,AN);  
+    ######################`resolve/reportfail`(AL,AN);  
      B := A;
   #####                                                  
   else 
@@ -121,7 +121,8 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
    
   ans := `resolve/lin`(convert(B, set), vl, ForceFail=ff);
 
-  if ans = FAIL and nops(AN)>= 2 then
+  # if no usable results, lets try to generate pseudoremainders of polynomial pairs
+  if ans = FAIL and nops(AN)>=2 then
 
     Reportf(2, ["No solvable linear eqs found, trying to combine nonlinear eqs pairs into linear"]);
     AE := `resolve/nonlin/combine`(AN);
@@ -131,9 +132,23 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
     vl := ListTools:-Reverse(sort([op(`union`(op(map(a -> convert(a:-Vars,set), AE))))],  `Vars/<<`)); # present Vars in resolvable eqs.
     Reportf(0, ["Combined %a linear eqs out of %a nonlinear", nops(vl), nops(AN)]); 
     ans := `resolve/lin`(convert(AE, set), vl, ForceFail=ff, keepfails);
-  fi;  
+  fi;    
+  
+  #  if still no usable results, lets try to linearize nonlinear eqs by pd (linderive)
+  if ans = FAIL and nops(AN)>0 then
+    Reportf(2, ["No solvable linear eqs found, trying to linearize eqs by linderive"]);
+    # APD := convert(`resolve/nonlin/pd`(convert(AN,set)), list);
+    APD := convert(linderive(op(AN)), list);
+    Reportf(1, ["Deriving %a nonlinear eqs given %a linear results", nops(AN), nops(APD)]);
+    Reportf(2, ["...witch properties are [price, size, VarL, LC]:\n%s",
+                StringTools:-Join(map(a -> sprintf("%q\n",[a:-price,a:-size,a:-Vars, a:-LC]), APD))]); 
+    vl := ListTools:-Reverse(sort([op(`union`(op(map(a -> convert(a:-Vars,set), APD))))],  `Vars/<<`)); # present Vars in resolvable eqs.
+    Reportf(0, ["Derived %a linear eqs from %a nonlinear", nops(vl), nops(AN)]); 
+    ans := `resolve/lin`(convert(APD, set), vl, ForceFail=ff, keepfails);
+  fi;
   
   DoReports(resolve, [ans],comment=" resolve output");
+  if ans = FAIL then `resolve/fails/print`(); fi;
   return (ans);
   #####fi;
 end:
@@ -176,7 +191,8 @@ end:
                           "Vars"=Vs, 
                           "degree"=deg,
                           "LC"=LC,
-                          "LM"=LM,                          
+                          "LM"=LM,  
+                          "LV"=Vs[1],                        
                           "price"=infinity, 
                           "size"=size(a),
                           "source"=source
@@ -203,7 +219,8 @@ end:
                           "Vars"=Vs, 
                           "degree"=deg,
                           "LC"=LC,                          
-                          "LM"=LM,                          
+                          "LM"=LM,  
+                          "LV"=Vs[1],                         
                           "price"=`resolve/lin/price`(a), 
                           "size"=size(a),
                           "source"=source,                          
@@ -238,6 +255,28 @@ coeffL := proc(F, Vs := Vars(F), {CF::{procedure,name}:=proc(x) option inline; x
   d := degree(LM, Vs[1]);
   LC, LM, d;
 end:
+
+
+### linearize nonlinear eqs by pd w. r. to its vars
+
+#`resolve/nonlin` := proc(ns, LV)
+#  `union`(op(map(`linderive/1`, ns, LV)))
+#end:
+
+linderive := proc()
+  description "given expression(s) nonlinear in leading Var, derive them in order to obtain linear consequences";
+  `union`(op(map(`linderive/1`, [args])))
+end:
+
+`linderive/1` := overload([
+  proc (a::algebraic, LV := LVar(a)) option overload;
+    map2(pd, a, vars(LV))
+  end,
+  proc (r::record, $) option overload;
+    map(`resolve/collectdata`@simpl, `linderive/1`(r:-expr, (r:-Vars)[1]))
+  end
+]):
+
 
 
 ### linearize combined nonlinear pairs (by multiples of remainders)
@@ -342,13 +381,13 @@ end:
 
 ### linear resolve
 
-`resolve/lin` := proc(ds,vl,{ForceFail::truefalse:=false})
+`resolve/lin` := proc(ds::sequential(record),vl,{ForceFail::truefalse:=false})
   global maxsize, RESOLVE, `resolve/result/suppressedminsize` := NULL;
   local bs,v,cs,ls,ns,ps,p,q,qs,ans,aux,rs,rt,lb, rat, os, os1;
   if ForceFail=true then tprint("Enforced linear failure.") fi;
 
   Report(1, cat(`resolving `, nops(ds),` eq.`)); 
-  ans := {}; rs := {}; os := {};
+  ans := {}; rs := {}; os := {}; 
 
   bs := map(proc(d) d:-reduced := `resolve/lin/reduce`(d:-expr, vl); return d; end, ds); # add reductions to ds data records 
   bs := remove(proc(d) evalb(d:-reduced = 0) end, bs);  # remove zero eqs.
@@ -412,10 +451,10 @@ end:
     map(proc(a) 
           local LC := lcoeff(a, LVar(a)); ### je to ok??????
           `resolve/fails/collect`( `if`(type(a, linear(LVar(a))), 'linear', 'nonlinear'),
-                                  'procname', a, LVar(a), VarL(a),  LC, degree(a, LVar(a)), 'solvable'=type(LC, 'nonzero'))
+                                  '`resolve/lin`', a, LVar(a), VarL(a),  LC, degree(a, LVar(a)), 'solvable'=type(LC, 'nonzero'))
         end,
         map2(op, 1, rs) union aux);
-    `resolve/fails/print`();
+    ###`resolve/fails/print`();
     return FAIL;
   else 
     return op(ans);
@@ -435,25 +474,25 @@ end:
 `resolve/lin/price` := proc(r)  option inline; size(r) end:
 
 
-### resolve fail reporting
-
-`resolve/reportfail` := proc(AL, AN)
-  map(`resolve/reportfail/lin`, AL);
-  map(`resolve/reportfail/nonlin`, AN);
-  tprint(sprintf("Resolve failed (%a linear, %a NONlinear).", nops(AL), nops(AN)));  
-  FAIL;
-end:
-
-`resolve/reportfail/lin` := proc(a)
-  tprint(sprintf("Linear resolving failed in %a:", a:-Vars[1]));
-  #print(a:-expr);
-  print(a:-LC*a:-Vars[1]="..."); # ... = -a:-rest
-end:
-
-`resolve/reportfail/nonlin` := proc(a)
-  tprint(sprintf("NONLinear resolving failed in %a:", a:-Vars[1]));
-  print(a:-expr);
-end:
+#### resolve fail reporting
+#
+#`resolve/reportfail` := proc(AL, AN)
+#  map(`resolve/reportfail/lin`, AL);
+#  map(`resolve/reportfail/nonlin`, AN);
+#  tprint(sprintf("Resolve failed (%a linear, %a NONlinear).", nops(AL), nops(AN)));  
+#  FAIL;
+#end:
+#
+#`resolve/reportfail/lin` := proc(a)
+#  tprint(sprintf("Linear resolving failed in %a:", a:-Vars[1]));
+#  #print(a:-expr);
+#  print(a:-LC*a:-Vars[1]="..."); # ... = -a:-rest
+#end:
+#
+#`resolve/reportfail/nonlin` := proc(a)
+#  tprint(sprintf("NONLinear resolving failed in %a:", a:-Vars[1]));
+#  print(a:-expr);
+#end:
 
 ### resolve fail Reporter
 
@@ -616,9 +655,10 @@ end:
         ':-source' = 'source', 
         ':-expr' = expr, 
         ':-LV' = LV, 
-        ':-Vs' = Vs, 
-        ':-LC' = LC, 
+        ':-LM' = LV^deg, 
         ':-deg' = deg,
+        ':-LC' = LC, 
+        ':-Vs' = Vs, 
         ':-solvable' = solvable]);
 end:
 
@@ -627,11 +667,11 @@ end:
   local T, kind, tail, slv;
   T := `resolve/fails/table`[op(i)];
   kind := T[':-kind'];
-  slv := `if`(T['solvable']=true, "solvable", "");
-  tprint(sprintf("%a. %s %a solving failed in %a", 
-                  op(i), slv, kind, T['LV']),
+  tprint(sprintf("%a. %a solving by %a failed in %a", 
+                  op(i), kind, T['source'], T['LV']),
          newline=false);
   if kind = 'linear' or kind ='remainder' then
+    if T['solvable']=true then printf(" (solvable) ") fi;
     tail := T['expr'] - T['LC']*T['LV'];
     print (smash(T['LC'])*T['LV'] = -smash(tail));    
   elif kind = 'nonlinear' then

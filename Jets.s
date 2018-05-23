@@ -263,14 +263,14 @@ ProcBaseSYMBOL := proc() option inline; convert(StringTools:-UpperCase(ProcBaseN
 Report := proc(l, m)
   option inline;   
   `if` (`report/tab`[ProcBaseSymbol()] > l, # l<=0 or ... for some magic reason wont work
-        report(cat(ProcBaseSYMBOL(), '`:`'), [cat(ProcName(0),":"), `if`(type(m,list),op(m),m)]),
+        report(cat(ProcBaseSYMBOL(), '`:`'), [cat(ProcName(0),'`[[`',l,'`]]`',":"), `if`(type(m,list),op(m),m)]),
         NULL);
 end:
 
 Reportf := proc(l, m)
   option inline;  
   `if`(`report/tab`[ProcBaseSymbol()] > l,
-       report(cat(ProcBaseSYMBOL(), '`:`'), sprintf(cat("%a: ", op(1,m)), ProcName(0), op(2..-1, m))),
+       report(cat(ProcBaseSYMBOL(), '`:`'), sprintf(cat("%a [[%a]]:", op(1,m)), ProcName(0), l, op(2..-1, m))),
        NULL);
 end:
 
@@ -3170,20 +3170,6 @@ fi: # jets_new_resolve_enable
 #
 # Resolve - the common part
 #
-
-
-`resolve/nonlin` := proc(ns, LV)
-  `union`(op(map(`linderive/1`, ns, LV)))
-end:
-
-linderive := proc()
-  description "given expression(s) nonlinear in leading Var, derive them in order to obtain linear consequences";
-  `union`(op(map(`linderive/1`, [args])))
-end:
-
-`linderive/1` := proc (a, LV := LVar(a))
-  map2(pd, a, vars(LV))
-end:
 
 `resolve/fail` :=  proc(r, msg) 
   if type(op(1,r), linear(op(2,r))) then 
