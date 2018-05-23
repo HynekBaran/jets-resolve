@@ -29,7 +29,7 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
   
   A := MaP(`resolve/collectdata`, convert(as,list), source=''procname'');
   A := sizesort(A, a->a:-price);
-  AL, AN := selectremove(a->a:-kind = 'linear', A); # nonlin, lin
+  AL, AN := selectremove(a->a:-kind <> 'nonlinear', A); # nonlin, lin
   A1, A0 := selectremove(a->a:-solvable=true, AL); # resolvable, nonresolvable
   A1S, A1H :=`resolve/simplehard`(A1);                       
 
@@ -162,13 +162,26 @@ end:
                             , as);
 end: 
 
-`resolve/collectdata` := proc(b, {source:='`?`'})
+`resolve/collectdata` := proc(b::algebraic, Ws := NULL, {source:='`?`'}, $)
   local a, Vs, LC, LCV, LM, r,s, Cs, Ms, deg;
   a := Simpl(b);  
-  Vs := VarL(b);
+  if Ws = NULL then Vs := VarL(b) else Vs := Ws fi;
   if nops(Vs)=0 then # no unknowns
-    tprint("No unknowns in ", a);
-    return NULL;
+    Reportf(0, ["No unknowns in %a", a]);
+    return compat[Record[packed]](
+                          "expr"=a, 
+                          "reduced"=NULL,                          
+                          "kind"='unknownless',
+                          "Vars"=Vs, 
+                          "degree"=0,
+                          "LC"=a,
+                          "LM"=1,  
+                          #"LV"=LV,                        
+                          "price"=0, 
+                          "size"=size(a),
+                          "source"=source,
+                          "solvable"=FAIL
+                          )  
   fi;
 
   #a := `resolve/lin/reduce`(a, Vs);
@@ -381,94 +394,108 @@ end:
 
 ### linear resolve
 
-`resolve/lin` := proc(ds::sequential(record),vl,{ForceFail::truefalse:=false})
-  global maxsize, RESOLVE, `resolve/result/suppressedminsize` := NULL;
-  local bs,v,cs,ls,ns,ps,p,q,qs,ans,aux,rs,rt,lb, rat, os, os1;
-  if ForceFail=true then tprint("Enforced linear failure.") fi;
+`resolve/lin` := overload([
+  
+  proc(ds::sequential(algebraic),vl)
+    option overload;
+    local rs := map(`resolve/collectdata`, ds, vl, source='`resolve/lin`');
+    `resolve/lin`(rs,vl,  _rest);
+  end,
+  
+  proc(ds::sequential(record),vl,{ForceFail::truefalse:=false}) 
+    option overload;
+    global maxsize, RESOLVE, `resolve/result/suppressedminsize` := NULL;
+    local bs,v,cs,ls,ns,ps,p,q,qs,ans,aux,rs,rt,lb, rat, os, os1;
+    if ForceFail=true then tprint("Enforced linear failure.") fi;
+  
+    Report(1, cat(`resolving `, nops(ds),` eq.`)); 
+    ans := {}; rs := {}; os := {}; 
+  
+    bs := remove(proc(d) evalb(d:-expr = 0) end, ds);  # remove zero eqs.
 
-  Report(1, cat(`resolving `, nops(ds),` eq.`)); 
-  ans := {}; rs := {}; os := {}; 
+    bs := map(`resolve/lin/reduce`, bs, vl); # add reductions to ds data records 
+    bs := remove(proc(d) evalb(d:-reduced = 0) end, bs);  # remove zero eqs.
 
-  bs := map(proc(d) d:-reduced := `resolve/lin/reduce`(d:-expr, vl); return d; end, ds); # add reductions to ds data records 
-  bs := remove(proc(d) evalb(d:-reduced = 0) end, bs);  # remove zero eqs.
- 
-  Report(0, [`resolving`, nops(ds), `out of`, nops(ds), `eqns in `, nops(vl), `unknowns`]) ; 
-
-  for v in vl do # for v running through all Vars in reverse Varordering
-    #`resolve/lin/reduce`(bs, vl); ### called above
-    cs := select(proc(b) has(b:-reduced, v) end, bs);  # cs = subset of bs with v 
-    Report(2, [`resolving`, nops(cs), `equations`, `with respect to`, v]); 
-    Report(5, [`resolving eqs`, cs]); 
-    bs := bs minus cs;  # bs = subset without v
-    ### linear?
-    ls, ns := selectremove(a->a:-kind='linear', cs);  # ls = subset of cs linear in v
-    
-    if ForceFail=true then
-      # printf("Enforced linear failure (w. r. to %a).\n", v);
-      rs := rs union map(proc(a,v) [a,v] end, cs, v)  # move cs to rs   
-    else   
-     Report(4, [ nops(ls), `of them linear:`, ls]); 
-      ### solvable?
-      ps, os1 := selectremove(a->(a:-solvable=true), ls);
-      ###map(proc(a) T[a]['solvable'] :=  evalb(a in ps) end, ls);
-      os := os union os1; # save linear but nonresolvable for future
-      Report(3, [`Solving `, nops(cs),  `eqns w. r. to`,  v, nops(ls), 
-                                ` of them linear`, nops(ps), ` of them resolvable.`]); 
-      if ps <> {} then # if solvable eqs,
-        qs := map(`resolve/lin/1`, ps, v, vl); # solve all ps
-        Report(4, [`available solutions:`, qs]); 
-        qs := sizesort([op(qs)], size);
-        q := op(1,qs);
-        Report(4, [`using solution:`, q]); 
-        ###bs := bs union map(`resolve/lin/reduce`, map(`resolve/subs`, cs, v, q), vl);
-        Report(4, [`back substituted system:`, bs]) ; 
-        ans := {v = q} union map(proc(a,v,q) 
-                                    op(1,a) = `resolve/subs`(op(2,a), v, q) end, 
-                                 ans, v, q)
-      else 
-        # try to subtract pairs of equations; not implemented yet
-        rs := rs union map(proc(a,v) [a:-reduced,v] end, cs, v)  # move cs to rs
+   
+    Report(0, [`resolving`, nops(ds), `out of`, nops(ds), `eqns in `, nops(vl), `unknowns`]) ; 
+  
+    for v in vl do # for v running through all Vars in reverse Varordering
+      #`resolve/lin/reduce`(bs, vl); ### called above
+      cs := select(proc(b) has(b:-reduced, v) end, bs);  # cs = subset of bs with v 
+      Report(2, [`resolving`, nops(cs), `equations`, `with respect to`, v]); 
+      Report(5, [`resolving eqs`, cs]); 
+      bs := bs minus cs;  # bs = subset without v
+      ### linear?
+      ls, ns := selectremove(a->(a:-kind='linear' or a:-kind='unknownless'), cs);  # ls = subset of cs linear in v
+      
+      if ForceFail=true then
+        # printf("Enforced linear failure (w. r. to %a).\n", v);
+        rs := rs union map(proc(a,v) [a,v] end, cs, v)  # move cs to rs   
+      else   
+       Report(4, [ nops(ls), `of them linear:`, ls]); 
+        ### solvable?
+        ps, os1 := selectremove(a->(a:-solvable=true), ls);
+        ###map(proc(a) T[a]['solvable'] :=  evalb(a in ps) end, ls);
+        os := os union os1; # save linear but nonresolvable for future
+        Report(3, [`Solving `, nops(cs),  `eqns w. r. to`,  v, nops(ls), 
+                                  ` of them linear`, nops(ps), ` of them resolvable.`]); 
+        if ps <> {} then # if solvable eqs,
+          qs := map(`resolve/lin/1`, ps, v, vl); # solve all ps
+          Report(4, [`available solutions:`, qs]); 
+          qs := sizesort([op(qs)], size);
+          q := op(1,qs);
+          Report(4, [`using solution:`, q]); 
+          ###bs := bs union map(`resolve/lin/reduce`, map(`resolve/subs`, cs, v, q), vl);
+          Report(4, [`back substituted system:`, bs]) ; 
+          ans := {v = q} union map(proc(a,v,q) 
+                                      op(1,a) = `resolve/subs`(op(2,a), v, q) end, 
+                                   ans, v, q)
+        else 
+          # try to subtract pairs of equations; not implemented yet
+          rs := rs union map(proc(a,v) [a:-reduced,v] end, cs, v)  # move cs to rs
+        fi;
       fi;
+    od;
+    Report(0, cat(`solved `, nops(ans), ` eq.`)); 
+    Report(1, cat(`rejected `, nops(rs), ` eq.`)); 
+    Report(2, [`sizes: solved:`, op(sort(map(size,[op(ans)]))), `rejected:`, op(sort(map(size,[op(rs)]))), `left `, nops(bs), ` eq.`]);    
+    
+    ans := map(Simpl, map(eval,ans), vl);
+    
+    rs := map(proc(r,vl) [Simpl(op(1,r), vl), op(2,r)] end, rs, vl);
+    rs := select(proc(r) evalb(op(1,r) <> 0) end, rs);
+    aux := ans;
+    ans := select(proc(a) size(a) < maxsize end, ans);
+    aux := aux minus ans;
+    
+    ### rat := `resolve/nonresrat/test`(os, map(lhs-rhs, ans)); 
+  
+    Report(0, [`bobo`, nops(ans), nops(aux), nops(rs)]);
+  
+    if ans = {} then
+      map(proc(a) 
+            local LC := lcoeff(a, LVar(a)); ### je to ok??????
+            `resolve/fails/collect`( `if`(type(a, linear(LVar(a))) or Vars(a)={}, 'linear', 'nonlinear'),
+                                    '`resolve/lin`', a, LVar(a), VarL(a),  LC, degree(a, LVar(a)), 'solvable'=type(LC, 'nonzero'))
+          end,
+          map2(op, 1, rs) union aux);
+      ###`resolve/fails/print`();
+      return FAIL;
+    else 
+      return op(ans);
     fi;
-  od;
-  Report(0, cat(`solved `, nops(ans), ` eq.`)); 
-  Report(1, cat(`rejected `, nops(rs), ` eq.`)); 
-  Report(2, [`sizes: solved:`, op(sort(map(size,[op(ans)]))), `rejected:`, op(sort(map(size,[op(rs)]))), `left `, nops(bs), ` eq.`]);    
-  
-  ans := map(Simpl, map(eval,ans), vl);
-  
-  rs := map(proc(r,vl) [Simpl(op(1,r), vl), op(2,r)] end, rs, vl);
-  rs := select(proc(r) evalb(op(1,r) <> 0) end, rs);
-  aux := ans;
-  ans := select(proc(a) size(a) < maxsize end, ans);
-  aux := aux minus ans;
-  
-  ### rat := `resolve/nonresrat/test`(os, map(lhs-rhs, ans)); 
-
-  Report(0, [`bobo`, nops(ans), nops(aux), nops(rs)]);
-
-  if ans = {} then
-    map(proc(a) 
-          local LC := lcoeff(a, LVar(a)); ### je to ok??????
-          `resolve/fails/collect`( `if`(type(a, linear(LVar(a))), 'linear', 'nonlinear'),
-                                  '`resolve/lin`', a, LVar(a), VarL(a),  LC, degree(a, LVar(a)), 'solvable'=type(LC, 'nonzero'))
-        end,
-        map2(op, 1, rs) union aux);
-    ###`resolve/fails/print`();
-    return FAIL;
-  else 
-    return op(ans);
-  fi;
-end:
+  end
+]):
 
 `resolve/lin/1` := proc(p,v, vl) Simpl(-coeff(p:-reduced,v,0)/coeff(p:-reduced,v,1), vl) end:
 
-`resolve/lin/reduce` := proc(a, vl)
-    local b;
-    b := divideout(a); # remove nonzero factors
+`resolve/lin/reduce` := proc(a::record, vl)
+    local b, res;
+    b := divideout(a:-expr); # remove nonzero factors
     b := Simpl(b, vl); # Simplify
-    b := reduceprod(b);  # reduce products
-    return b;
+    a:-expr := b;
+    a:-reduced := reduceprod(b);  # reduce products
+    return a;
 end:
 
 `resolve/lin/price` := proc(r)  option inline; size(r) end:
