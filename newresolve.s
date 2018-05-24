@@ -129,7 +129,7 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
     Reportf(1, ["Combining %a nonlinear eqs given %a linear results", nops(AN), nops(AE)]);
     Reportf(2, ["...witch properties are [price, size, VarL, LC]:\n%s",
                 StringTools:-Join(map(a -> sprintf("%q\n",[a:-price,a:-size,a:-Vars, a:-LC]), AE))]); 
-    Reportf(0, ["Combined %a linear eqs out of %a nonlinear", nops(AE), nops(AN)]); 
+    Reportf(0, ["Lets resolve combined %a linear eqs (out of %a nonlinear)...", nops(AE), nops(AN)]); 
     ans := `resolve/lin`(convert(AE, set), ForceFail=ff, keepfails);
   fi;    
   
@@ -160,7 +160,9 @@ end:
                             , as);
 end: 
 
-`resolve/data/get/expr` := proc(a) option inline; `if`(type(a, sequential), map(b->b:-expr, a), a:-expr) end:
+### `resolve/data` toolbox
+# instead of algrebraic expressions, records are used to avoid multiple computations on the same expression
+# the original expression is stored in r:-'expr' slot
 
 `resolve/data/collect` := proc(b::algebraic, {source:='`?`'}, $)
   local a, Vs, LC, LCV, LM, r,s, Cs, Ms, deg;
@@ -246,10 +248,10 @@ end:
   fi
 end:
 
+`resolve/data/get/expr` := proc(a) option inline; `if`(type(a, sequential), map(b->b:-expr, a), a:-expr) end:
 
 `resolve/data/get/Vars` := proc(es::sequential(record))
-  global `Vars/<<`;
-  ListTools:-Reverse(sort([op(`union`(op(map(a -> convert(a:-Vars,set), convert(es, list)))))],  `Vars/<<`)); # present Vars in resolvable eqs.
+  VarL(`union`(op(map(a -> convert(a:-Vars,set), convert(es, list)))));
 end;
 
 coeffsV := proc(F, Vs := Vars(F), {CF::{procedure,name}:=proc(x) option inline; x end})
@@ -288,11 +290,11 @@ linderive := proc()
 end:
 
 `linderive/1` := overload([
-  proc (a::algebraic, LV := LVar(a)) option overload(callseq_only);
-    map2(pd, a, vars(LV))
-  end,
   proc (r::record, $) option overload(callseq_only);
     map(`resolve/data/collect`@simpl, `linderive/1`(r:-expr, (r:-Vars)[1]))
+  end,
+  proc (a::algebraic, LV := LVar(a))
+    map2(pd, a, vars(LV, forceError=true))
   end
 ]):
 
@@ -380,10 +382,11 @@ end:
 
 `resolve/nonlin/combine/2/pseudorem` := proc (f, g, LCf, LCg, df::integer, dg::integer, LV, Vs::list, $)
   description "Remainder of (appropriate multiple of f) and (g) to avoid div by 0";
-  local K;
-  K := LCg^(df-dg+1);
-  Reportf(5, ["Combining (%a) * (%a) and %a", K, f, g]);
-  frontend(rem, [K*f, g, LV])
+  local K, Kf, Kg;
+  #K := LCg^(df-dg+1);
+  gcd(LCf,LCg^(df-dg+1), Kf, Kg); #### ??????????????????????????
+  Reportf(5, ["Combining (%a) * (%a) and %a", Kg, f, g]);
+  frontend(rem, [Kg*f, g, LV])
 end:
 
 `resolve/nonlin/combine/2/rem` := proc (f, g, LCf, LCg, df::integer, dg::integer, LV, Vs::list, $)
@@ -508,33 +511,17 @@ end:
     local b, res;
     b := divideout(a:-expr); # remove nonzero factors
     b := Simpl(b, vl); # Simplify
-    a:-expr := b;
-    a:-reduced := reduceprod(b);  # reduce products
-    return a;
+    if b=0 then 
+      return NULL
+    else
+      a:-expr := b;
+      a:-reduced := reduceprod(b);  # reduce products
+      return a;
+    fi;
 end:
 
 `resolve/lin/price` := proc(r)  option inline; size(r) end:
 
-
-#### resolve fail reporting
-#
-#`resolve/reportfail` := proc(AL, AN)
-#  map(`resolve/reportfail/lin`, AL);
-#  map(`resolve/reportfail/nonlin`, AN);
-#  tprint(sprintf("Resolve failed (%a linear, %a NONlinear).", nops(AL), nops(AN)));  
-#  FAIL;
-#end:
-#
-#`resolve/reportfail/lin` := proc(a)
-#  tprint(sprintf("Linear resolving failed in %a:", a:-Vars[1]));
-#  #print(a:-expr);
-#  print(a:-LC*a:-Vars[1]="..."); # ... = -a:-rest
-#end:
-#
-#`resolve/reportfail/nonlin` := proc(a)
-#  tprint(sprintf("NONLinear resolving failed in %a:", a:-Vars[1]));
-#  print(a:-expr);
-#end:
 
 ### resolve fail Reporter
 
@@ -619,7 +606,6 @@ end:
 #end:
 
 
-
 `resolve/fail` :=  proc(r, msg) 
   if type(op(1,r), linear(op(2,r))) then 
     tprint(msg, op(2,r));
@@ -661,8 +647,6 @@ end:
     return 0;
   fi;
 end:
-
-
 
 
 

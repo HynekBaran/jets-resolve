@@ -142,9 +142,6 @@ Using the new implementation of resolve (not well tested yet!)</Text-field>
 <Input>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal">AssertLevel(15);</Text-field>
 </Input>
-<Output>
-<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">NiRRMUFzc2VydGlvbnN+bGV2ZWw2IiIjOg==</Equation></Text-field>
-</Output>
 </Group>
 <Group hide-output="false" labelreference="L49" drawlabel="true">
 <Input>
@@ -782,24 +779,76 @@ Using the new implementation of resolve (not well tested yet!)</Text-field>
 <Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">STRDbGVhcmluZ35ub256ZXJvJ3MuRzYi</Equation></Text-field>
 </Output>
 </Group>
+<Group labelreference="L969" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group labelreference="L968" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">coordinates([t,x],[u]):</Text-field>
+</Input>
+</Group>
 <Group labelreference="L967" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal">dependence(a(),b(),c()):unknowns(c,b,a);</Text-field>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">dependence(a,b,c):unknowns(c,b,a):</Text-field>
 </Input>
-<Output>
-<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">NiVJImNHNiJJImJHRiRJImFHRiQ=</Equation></Text-field>
-</Output>
 </Group>
 <Group hide-output="false" labelreference="L36" drawlabel="true">
 <Input>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal">T (`resolve/lin`({a + b}), a = -b, `resolve 1`):</Text-field>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal">T ({`resolve/lin`({a + b, a + c})}, {a = -c, b = c},`resolve 2`): T (`resolve/lin`({c*a + b + 2, b + 5}), b = -5, `resolve 3`):</Text-field>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal">clear(dependence):unknowns():</Text-field>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">unknowns(A,B,C):</Text-field>
+</Input>
+</Group>
+<Group labelreference="L974" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">resolve(A*x-B);</Text-field>
+</Input>
+<Output>
+<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYoLUkjbWlHRiQ2JVEiQkYnLyUnaXRhbGljR1EldHJ1ZUYnLyUsbWF0aHZhcmlhbnRHUSdpdGFsaWNGJy1JI21vR0YkNi1RIj1GJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYmLUYsNiVRIkFGJ0YvRjItRjY2LVExJkludmlzaWJsZVRpbWVzO0YnRjlGO0Y+RkBGQkZERkZGSC9GS1EmMC4wZW1GJy9GTkZYLUYsNiVRInhGJ0YvRjJGOS8lK2ZvcmVncm91bmRHUShbMCwwLDBdRicvJSlyZWFkb25seUdGPUY5">L0kiQkc2IiomSSJBR0YkIiIiSSJ4R0YkRic=</Equation></Text-field>
+</Output>
+</Group>
+<Group labelreference="L975" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">VarL(a*x-b);</Text-field>
+</Input>
+<Output>
+<Text-field style="Diagnostic" layout="Diagnostic"><Font encoding="UTF-8"> VarL called with arguments: a*x-b
+ #(VarL,1): ListTools:-Reverse(sort(Varl(args),\134`Vars/&lt;&lt;\134`))</Font></Text-field>
+<Text-field style="Diagnostic" layout="Diagnostic"><Font encoding="UTF-8"> Vars/&lt;&lt; called with arguments: a, b
+ #(\134`Vars/&lt;&lt;\134`,24): if Call(\134`Vars/&lt;&lt;/\134`,o)(u1,x1,u2,x2,pars) then ... end if;
+ Vars/&lt;&lt;/function called with arguments: a, 1, b, 1
+ #(\134`Vars/&lt;&lt;/function\134`,1): evalb(\134`list/&lt;&lt;\134`(u1,u2,\134`unk/&lt;&lt;/list\134`))
+ list/&lt;&lt; called with arguments: a, b, [A, B, C]
+ #(\134`list/&lt;&lt;\134`,2): ERROR(\134`not in the list\134`,x1)</Font></Text-field>
+<Text-field style="HyperlinkError" layout="HyperlinkError"><Hyperlink linktarget="http://www.maplesoft.com/support/help/errors/view.aspx?path=Error,%20(in%20list%2F%3C%3C)%20not%20in%20the%20list,%20a" hyperlink="true"><Font style="HyperlinkError">Error, (in list/&lt;&lt;) not in the list, a</Font></Hyperlink></Text-field>
+</Output>
+<Output>
+<Text-field style="Diagnostic" layout="Diagnostic"> locals defined as: n1 = n1, n2 = n2</Text-field>
+</Output>
+</Group>
+<Group labelreference="L972" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">clear(dependence):
+unknowns():</Text-field>
 </Input>
 <Output>
 <Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">STdDbGVhcmluZ35kZXBlbmRlbmNlJ3MuRzYi</Equation></Text-field>
 </Output>
+</Group>
+<Group labelreference="L971" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+<Output>
+<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">NyI=</Equation></Text-field>
+</Output>
+</Group>
+<Group labelreference="L970" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
 </Group>
 <Group hide-output="false" labelreference="L38" drawlabel="true">
 <Input>
