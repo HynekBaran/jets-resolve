@@ -2,7 +2,7 @@
 <Worksheet>
 <Version major="2015" minor="2"/>
 <Label-Scheme value="2" prefix=""/>
-<View-Properties presentation="false" autoexpanding_sections="true" UserProfileName="Maple Default Profile" NumericFormat-ApplyInteger="true" NumericFormat-ApplyRational="true" NumericFormat-ApplyExponent="false">
+<View-Properties presentation="false" autoexpanding_sections="true" UserProfileName="Maple Default Profile" NumericFormat-ApplyInteger="true" NumericFormat-ApplyRational="true" NumericFormat-ApplyExponent="false"><Zoom percentage="115"/>
 </View-Properties>
 <MapleNet-Properties prettyprint="3" warnlevel="3" preplot="" helpbrowser="standard" contextmenusize="automatic" displayprecision="-1" echo="1" unitattributes="&quot;fontweight&quot; = &quot;bold&quot;" imaginaryunit="I" longdelim="true" elisiontermsthreshold="10000" elisiondigitsafter="100" elisiondigitsbefore="100" plotdevice="inline" errorbreak="1" plotoptions="" plotdriver="opengl" quiet="false" elisiontermsbefore="100" elisiontermsafter="100" screenwidth="120" indentamount="4" plotoutput="terminal" screenpixelheight="1200" rtablesize="10" useclientjvm="true" labelwidth="20" postplot="" typesetting="standard" ansi="false" elisiondigitsthreshold="10000" showassumed="1" errorcursor="false" labelling="true" screenheight="25" prompt="&gt; " verboseproc="1" latexwidth="8.0" ShowLabels="false"/>
 <Styles>
@@ -782,16 +782,23 @@ Using the new implementation of resolve (not well tested yet!)</Text-field>
 <Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">STRDbGVhcmluZ35ub256ZXJvJ3MuRzYi</Equation></Text-field>
 </Output>
 </Group>
+<Group labelreference="L967" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">dependence(a(),b(),c()):unknowns(c,b,a);</Text-field>
+</Input>
+<Output>
+<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">NiVJImNHNiJJImJHRiRJImFHRiQ=</Equation></Text-field>
+</Output>
+</Group>
 <Group hide-output="false" labelreference="L36" drawlabel="true">
 <Input>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal">T (`resolve/lin`({a + b}, [a,b]), a = -b, `resolve 1`):</Text-field>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal">T ({`resolve/lin`({a + b, a + c}, [a,b,c])}, {a = -c, b = c},`resolve 2`): </Text-field>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal">T (`resolve/lin`({c*a + b + 2, b + 5}, [a,b]), b = -5, `resolve 3`):</Text-field>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">T (`resolve/lin`({a + b}), a = -b, `resolve 1`):</Text-field>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">T ({`resolve/lin`({a + b, a + c})}, {a = -c, b = c},`resolve 2`): T (`resolve/lin`({c*a + b + 2, b + 5}), b = -5, `resolve 3`):</Text-field>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">clear(dependence):unknowns():</Text-field>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 <Output>
-<Text-field style="HyperlinkError" layout="HyperlinkError"><Hyperlink linktarget="http://www.maplesoft.com/support/help/errors/view.aspx?path=Error,%20(in%20resolve%2Ffails%2Fcollect)%20too%20many%20levels%20of%20recursion" hyperlink="true"><Font style="HyperlinkError">Error, (in resolve/fails/collect) too many levels of recursion</Font></Hyperlink></Text-field>
+<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">STdDbGVhcmluZ35kZXBlbmRlbmNlJ3MuRzYi</Equation></Text-field>
 </Output>
 </Group>
 <Group hide-output="false" labelreference="L38" drawlabel="true">

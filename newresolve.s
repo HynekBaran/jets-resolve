@@ -111,7 +111,7 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
     ff := false;
   fi;
   
-  vl := ListTools:-Reverse(sort([op(`union`(op(map(a -> convert(a:-Vars,set), B))))],  `Vars/<<`)); # present Vars in resolvable eqs.
+  vl :=`resolve/data/get/Vars`(B); # present Vars in resolvable eqs.
   if vl = [] then ERROR(`no unknowns`, as) fi;  
   ##cs := map(a -> a:-expr, B);
   #DoReports(resolve, cs, comment=cat(" resolve selection:\n", 
@@ -129,9 +129,8 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
     Reportf(1, ["Combining %a nonlinear eqs given %a linear results", nops(AN), nops(AE)]);
     Reportf(2, ["...witch properties are [price, size, VarL, LC]:\n%s",
                 StringTools:-Join(map(a -> sprintf("%q\n",[a:-price,a:-size,a:-Vars, a:-LC]), AE))]); 
-    vl := ListTools:-Reverse(sort([op(`union`(op(map(a -> convert(a:-Vars,set), AE))))],  `Vars/<<`)); # present Vars in resolvable eqs.
-    Reportf(0, ["Combined %a linear eqs out of %a nonlinear", nops(vl), nops(AN)]); 
-    ans := `resolve/lin`(convert(AE, set), vl, ForceFail=ff, keepfails);
+    Reportf(0, ["Combined %a linear eqs out of %a nonlinear", nops(AE), nops(AN)]); 
+    ans := `resolve/lin`(convert(AE, set), ForceFail=ff, keepfails);
   fi;    
   
   #  if still no usable results, lets try to linearize nonlinear eqs by pd (linderive)
@@ -142,9 +141,8 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
     Reportf(1, ["Deriving %a nonlinear eqs given %a linear results", nops(AN), nops(APD)]);
     Reportf(2, ["...witch properties are [price, size, VarL, LC]:\n%s",
                 StringTools:-Join(map(a -> sprintf("%q\n",[a:-price,a:-size,a:-Vars, a:-LC]), APD))]); 
-    vl := ListTools:-Reverse(sort([op(`union`(op(map(a -> convert(a:-Vars,set), APD))))],  `Vars/<<`)); # present Vars in resolvable eqs.
-    Reportf(0, ["Derived %a linear eqs from %a nonlinear", nops(vl), nops(AN)]); 
-    ans := `resolve/lin`(convert(APD, set), vl, ForceFail=ff, keepfails);
+    Reportf(0, ["Derived %a linear eqs from %a nonlinear", nops(APD), nops(AN)]); 
+    ans := `resolve/lin`(convert(APD, set), ForceFail=ff, keepfails);
   fi;
   
   DoReports(resolve, [ans],comment=" resolve output");
@@ -164,10 +162,10 @@ end:
 
 `resolve/data/get/expr` := proc(a) option inline; `if`(type(a, sequential), map(b->b:-expr, a), a:-expr) end:
 
-`resolve/data/collect` := proc(b::algebraic, Ws := NULL, {source:='`?`'}, $)
+`resolve/data/collect` := proc(b::algebraic, {source:='`?`'}, $)
   local a, Vs, LC, LCV, LM, r,s, Cs, Ms, deg;
   a := Simpl(b);  
-  if Ws = NULL then Vs := VarL(b) else Vs := Ws fi;
+  Vs := VarL(b);
   if nops(Vs)=0 then # no unknowns
     Reportf(0, ["No unknowns in %a", a]);
     return compat[Record[packed]](
@@ -247,6 +245,12 @@ end:
                           )
   fi
 end:
+
+
+`resolve/data/get/Vars` := proc(es::sequential(record))
+  global `Vars/<<`;
+  ListTools:-Reverse(sort([op(`union`(op(map(a -> convert(a:-Vars,set), convert(es, list)))))],  `Vars/<<`)); # present Vars in resolvable eqs.
+end;
 
 coeffsV := proc(F, Vs := Vars(F), {CF::{procedure,name}:=proc(x) option inline; x end})
   description "collects a given polynomial w. r. to its variables "
@@ -398,12 +402,12 @@ end:
 
 `resolve/lin` := overload([
   
-  proc(ds::sequential(algebraic),vl::list) option overload(callseq_only);
-    local rs := map(`resolve/data/collect`, ds, vl, source='`resolve/lin`');
-    `resolve/lin`(rs,vl,  _rest);
+  proc(ds::sequential(algebraic), $) option overload(callseq_only);
+    local rs := map(`resolve/data/collect`, ds, source='`resolve/lin`');
+    `resolve/lin`(rs, _rest);
   end,
   
-  proc(ds::sequential(record),vl::list,{ForceFail::truefalse:=false}) option overload(callseq_only);
+  proc(ds::sequential(record), vl::list:=`resolve/data/get/Vars`(ds), {ForceFail::truefalse:=false}) option overload(callseq_only);
     global maxsize, RESOLVE, `resolve/result/suppressedminsize` := NULL;
     local bs,v,cs,ls,ns,ps,p,q,qs,ans,aux,rs,rt,lb, rat, os, os1;
     if ForceFail=true then tprint("Enforced linear failure.") fi;
@@ -423,7 +427,8 @@ end:
       #`resolve/lin/reduce`(bs, vl); ### called above
       cs := select(proc(b) has(b:-reduced, v) end, bs);  # cs = subset of bs with v 
       Report(2, [`resolving`, nops(cs), `equations`, `with respect to`, v]); 
-      Report(5, [`resolving eqs`, cs]); 
+      Report(5, [`resolving eqs`, `resolve/data/get/expr`(cs), `w.r. to`, v]); 
+      Report(6, [`resolving eqs with data`, cs, `w.r. to`, v]); 
       bs := bs minus cs;  # bs = subset without v
       ### linear?
       ls, ns := selectremove(a->(a:-kind='linear' or a:-kind='unknownless'), cs);  # ls = subset of cs linear in v
@@ -432,10 +437,9 @@ end:
         # printf("Enforced linear failure (w. r. to %a).\n", v);
         rs := rs union map(proc(a,v) [a,v] end, cs, v)  # move cs to rs   
       else   
-       Report(4, [ nops(ls), `of them linear:`, ls]); 
+       Report(4, [ nops(ls), `of them linear:`, `resolve/data/get/expr`(ls)]); 
         ### solvable?
-        ps, os1 := selectremove(a->(a:-solvable<>false), ls);
-        ###map(proc(a) T[a]['solvable'] :=  evalb(a in ps) end, ls);
+        ps, os1 := selectremove(a->(a:-solvable=true or a:-solvable=FAIL), ls);
         os := os union os1; # save linear but nonresolvable for future
         Report(3, [`Solving `, nops(cs),  `eqns w. r. to`,  v, nops(ls), 
                                   ` of them linear`, nops(ps), ` of them resolvable.`]); 
@@ -444,7 +448,7 @@ end:
           Report(4, [`available solutions:`, qs]); 
           qs := sizesort([op(qs)], size);
           q := op(1,qs);
-          Report(4, [`using solution:`, q]); 
+          Reportf(3, ["using solution %a=%a", v, q]); 
           bs := bs union map(`resolve/lin/reduce`, map(`resolve/subs`, cs, v, q), vl);
           Report(4, [`back substituted system:`, `resolve/data/get/expr`(bs)]) ; 
           ans := {v = q} union map(proc(a,v,q) 
