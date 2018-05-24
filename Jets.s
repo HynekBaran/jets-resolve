@@ -774,6 +774,7 @@ end:
 dependence := proc ()
   local f,fs,es,e, opts; 
   global `dep/tab`;
+  forget(Vars);
   fs := select(type, {args}, function);
   es := select(type, {args}, `=`);
   opts := select(type, {args}, symbol); # HB
@@ -3155,6 +3156,11 @@ end:
 
 `resolve/lin/1` := proc(p,v) -coeff(p,v,0)/coeff(p,v,1) end:
 
+`resolve/subs` := proc(a,v,q)
+  Simpl(subs(v = q, a)) # Correction: Simpl added 9.7.2007
+end:
+
+
 else # jets_new_resolve_enable
 
 #
@@ -3219,11 +3225,6 @@ end:
   evalb(`vars/1`(a) minus `union`(op(map(`vars/1`,unks(a)))) = {})
 end:
 
-
-
-`resolve/subs` := proc(a,v,q)
-  Simpl(subs(v = q, a)) # Correction: Simpl added 9.7.2007
-end:
 
 `type/resolvable` := proc(a)
   if unks(a) <> {} and
@@ -3490,7 +3491,7 @@ end:
 `report/tab`[pd] := 0:
 `report/tab`[nonzero] := 0: # HB
 `report/tab`[put] := 0: # HB
-
+`report/tab`[unknown] := 0: # HB
 
 lb := NULL:
 

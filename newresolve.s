@@ -27,7 +27,7 @@ printf("\nUsing the new implementation of resolve (not well tested yet!)\n");
   as := MaP(reduceprod,as) minus {0};  
   Report(2, cat(`reduceprod `, nops(as))); 
   
-  A := MaP(`resolve/collectdata`, convert(as,list), source=''procname'');
+  A := MaP(`resolve/data/collect`, convert(as,list), source=''procname'');
   A := sizesort(A, a->a:-price);
   AL, AN := selectremove(a->a:-kind <> 'nonlinear', A); # nonlin, lin
   A1, A0 := selectremove(a->a:-solvable=true, AL); # resolvable, nonresolvable
@@ -162,7 +162,9 @@ end:
                             , as);
 end: 
 
-`resolve/collectdata` := proc(b::algebraic, Ws := NULL, {source:='`?`'}, $)
+`resolve/data/get/expr` := proc(a) option inline; `if`(type(a, sequential), map(b->b:-expr, a), a:-expr) end:
+
+`resolve/data/collect` := proc(b::algebraic, Ws := NULL, {source:='`?`'}, $)
   local a, Vs, LC, LCV, LM, r,s, Cs, Ms, deg;
   a := Simpl(b);  
   if Ws = NULL then Vs := VarL(b) else Vs := Ws fi;
@@ -282,11 +284,11 @@ linderive := proc()
 end:
 
 `linderive/1` := overload([
-  proc (a::algebraic, LV := LVar(a)) option overload;
+  proc (a::algebraic, LV := LVar(a)) option overload(callseq_only);
     map2(pd, a, vars(LV))
   end,
-  proc (r::record, $) option overload;
-    map(`resolve/collectdata`@simpl, `linderive/1`(r:-expr, (r:-Vars)[1]))
+  proc (r::record, $) option overload(callseq_only);
+    map(`resolve/data/collect`@simpl, `linderive/1`(r:-expr, (r:-Vars)[1]))
   end
 ]):
 
@@ -300,7 +302,7 @@ end:
   Vs := convert(map(proc(a)  a:-Vars[1]; end, as), set);
   # apply  `resolve/nonlin/combine/V` on subclasses of as distinguished by leading Var
   res := map(proc(LV) local bs := select(a -> a:-Vars[1] = LV, as); `resolve/nonlin/combine/LV`(LV, bs) end, Vs);
-  return sizesort(map(`resolve/collectdata`, res, source='procname'), a->a:-size);
+  return sizesort(map(`resolve/data/collect`, res, source='procname'), a->a:-size);
 end:
 
 `resolve/nonlin/combine/LV` := proc (LV, bs)
@@ -396,14 +398,12 @@ end:
 
 `resolve/lin` := overload([
   
-  proc(ds::sequential(algebraic),vl)
-    option overload;
-    local rs := map(`resolve/collectdata`, ds, vl, source='`resolve/lin`');
+  proc(ds::sequential(algebraic),vl::list) option overload(callseq_only);
+    local rs := map(`resolve/data/collect`, ds, vl, source='`resolve/lin`');
     `resolve/lin`(rs,vl,  _rest);
   end,
   
-  proc(ds::sequential(record),vl,{ForceFail::truefalse:=false}) 
-    option overload;
+  proc(ds::sequential(record),vl::list,{ForceFail::truefalse:=false}) option overload(callseq_only);
     global maxsize, RESOLVE, `resolve/result/suppressedminsize` := NULL;
     local bs,v,cs,ls,ns,ps,p,q,qs,ans,aux,rs,rt,lb, rat, os, os1;
     if ForceFail=true then tprint("Enforced linear failure.") fi;
@@ -434,7 +434,7 @@ end:
       else   
        Report(4, [ nops(ls), `of them linear:`, ls]); 
         ### solvable?
-        ps, os1 := selectremove(a->(a:-solvable=true), ls);
+        ps, os1 := selectremove(a->(a:-solvable<>false), ls);
         ###map(proc(a) T[a]['solvable'] :=  evalb(a in ps) end, ls);
         os := os union os1; # save linear but nonresolvable for future
         Report(3, [`Solving `, nops(cs),  `eqns w. r. to`,  v, nops(ls), 
@@ -445,8 +445,8 @@ end:
           qs := sizesort([op(qs)], size);
           q := op(1,qs);
           Report(4, [`using solution:`, q]); 
-          ###bs := bs union map(`resolve/lin/reduce`, map(`resolve/subs`, cs, v, q), vl);
-          Report(4, [`back substituted system:`, bs]) ; 
+          bs := bs union map(`resolve/lin/reduce`, map(`resolve/subs`, cs, v, q), vl);
+          Report(4, [`back substituted system:`, `resolve/data/get/expr`(bs)]) ; 
           ans := {v = q} union map(proc(a,v,q) 
                                       op(1,a) = `resolve/subs`(op(2,a), v, q) end, 
                                    ans, v, q)
@@ -486,6 +486,17 @@ end:
     fi;
   end
 ]):
+
+
+`resolve/subs` := overload([
+  proc(a::record,v,q) option overload(callseq_only);
+    `resolve/data/collect`(Simpl(subs(v = q, a:-expr)))
+  end,
+  proc(a::algebraic,v,q) option overload(callseq_only);
+    Simpl(subs(v = q, a)) # Correction: Simpl added 9.7.2007
+  end
+  ]):
+
 
 `resolve/lin/1` := proc(p,v, vl) Simpl(-coeff(p:-reduced,v,0)/coeff(p:-reduced,v,1), vl) end:
 
