@@ -403,7 +403,8 @@ end:
   if type(LCg, 'nonzero') then
     return res;
   else
-    lprint("`resolve2/rem` failed for ", LV, "nonzero coeff is", LCg);
+    Report(0, ["`resolve2/rem` failed for ", LV, "nonzero coeff is", LCg]);
+    Report(3, ["...remainder is", res]);
     `resolve/fails/collect`('remainder', 'procname', res, LV, Vs, LCg, [df, dg]);
     return NULL;
   fi;
@@ -704,10 +705,14 @@ end:
   tprint(sprintf("%a. %a solving by %a failed in %a", 
                   op(i), kind, T['source'], T['LV']),
          newline=false);
-  if kind = 'linear' or kind ='remainder' then
+  if kind = 'linear' then
     if T['solvable']=true then printf(" (solvable) ") fi;
     tail := T['expr'] - T['LC']*T['LV'];
     print (smash(T['LC'])*T['LV'] = -smash(tail));    
+  elif kind ='remainder' then
+    if T['solvable']=true then printf(" (solvable) ") fi;
+    printf(" on %a", T['LC']);
+    print (smash(T['expr']));    
   elif kind = 'nonlinear' then
     printf("^%a", T['deg']);
     print(smash(T['expr']));
