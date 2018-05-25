@@ -859,6 +859,11 @@ Using the new implementation of resolve (not well tested yet!)</Text-field>
 <Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">PCNJI1cyRzYi</Equation></Text-field>
 </Output>
 </Group>
+<Group labelreference="L982" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">T(resolve(C^2 + C + A0, -C^2 + C + B0), C = -(1/2)*A0-(1/2)*B0);</Text-field>
+</Input>
+</Group>
 <Group labelreference="L980" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal">T(resolve(W2*C^2 + C + A0, -W2*C^2 + C + B0), C = -(1/2)*A0-(1/2)*B0);</Text-field>
