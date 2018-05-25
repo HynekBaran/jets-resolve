@@ -382,9 +382,17 @@ end:
 
 `resolve/nonlin/combine/2/pseudorem` := proc (f, g, LCf, LCg, df::integer, dg::integer, LV, Vs::list, $)
   description "Remainder of (appropriate multiple of f) and (g) to avoid div by 0";
+  local K;
+  K := LCg^(df-dg+1);
+  Reportf(5, ["Combining (%a) * (%a) and %a", K, f, g]);
+  frontend(rem, [K*f, g, LV])
+end:
+
+`resolve/nonlin/combine/2/redpseudorem` := proc (f, g, LCf, LCg, df::integer, dg::integer, LV, Vs::list, $)
+  description "Remainder of (appropriate multiple of f, gcd used) and (g) to avoid div by 0";
+  #### ??????????????????????????
   local K, Kf, Kg;
-  #K := LCg^(df-dg+1);
-  gcd(LCf,LCg^(df-dg+1), Kf, Kg); #### ??????????????????????????
+  gcd(LCf,LCg^(df-dg+1), Kf, Kg); 
   Reportf(5, ["Combining (%a) * (%a) and %a", Kg, f, g]);
   frontend(rem, [Kg*f, g, LV])
 end:

@@ -142,6 +142,9 @@ Using the new implementation of resolve (not well tested yet!)</Text-field>
 <Input>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal">AssertLevel(15);</Text-field>
 </Input>
+<Output>
+<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">NiRRMUFzc2VydGlvbnN+bGV2ZWw2IiIjOg==</Equation></Text-field>
+</Output>
 </Group>
 <Group hide-output="false" labelreference="L49" drawlabel="true">
 <Input>
@@ -158,7 +161,7 @@ Using the new implementation of resolve (not well tested yet!)</Text-field>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal">printlevel := 4:</Text-field>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal">OK := true:</Text-field>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal">T := proc (a,b,c)</Text-field>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">T := proc (a,b,c:=&quot;&quot;)</Text-field>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal">  global OK;</Text-field>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal">  if not Quiet then lprint(c) fi;</Text-field>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal">  if not a=b then</Text-field>
@@ -791,59 +794,102 @@ Using the new implementation of resolve (not well tested yet!)</Text-field>
 </Group>
 <Group labelreference="L967" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal">dependence(a,b,c):unknowns(c,b,a):</Text-field>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">unknowns(c,b,a):</Text-field>
 </Input>
 </Group>
 <Group hide-output="false" labelreference="L36" drawlabel="true">
 <Input>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal">T (`resolve/lin`({a + b}), a = -b, `resolve 1`):</Text-field>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal">T ({`resolve/lin`({a + b, a + c})}, {a = -c, b = c},`resolve 2`): T (`resolve/lin`({c*a + b + 2, b + 5}), b = -5, `resolve 3`):</Text-field>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal">unknowns(A,B,C):</Text-field>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
 </Group>
 <Group labelreference="L974" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal">resolve(A*x-B);</Text-field>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">unknowns(A,B,C):T (resolve(A*B-C), C=A*B, &quot;resolve 4&quot;);T (resolve(C*A-B), FAIL, `resolve 5`);</Text-field>
 </Input>
 <Output>
-<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYoLUkjbWlHRiQ2JVEiQkYnLyUnaXRhbGljR1EldHJ1ZUYnLyUsbWF0aHZhcmlhbnRHUSdpdGFsaWNGJy1JI21vR0YkNi1RIj1GJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYmLUYsNiVRIkFGJ0YvRjItRjY2LVExJkludmlzaWJsZVRpbWVzO0YnRjlGO0Y+RkBGQkZERkZGSC9GS1EmMC4wZW1GJy9GTkZYLUYsNiVRInhGJ0YvRjJGOS8lK2ZvcmVncm91bmRHUShbMCwwLDBdRicvJSlyZWFkb25seUdGPUY5">L0kiQkc2IiomSSJBR0YkIiIiSSJ4R0YkRic=</Equation></Text-field>
+<Text-field style="Line Printed Output" layout="Line Printed Output">[0] &lt;0&gt; 1. linear solving by '`resolve/lin`' failed in C</Text-field>
+</Output>
+<Output>
+<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYoLUYjNiYtSSNtaUdGJDYlUSJDRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVExJkludmlzaWJsZVRpbWVzO0YnL0Y1USdub3JtYWxGJy8lJmZlbmNlR1EmZmFsc2VGJy8lKnNlcGFyYXRvckdGPy8lKXN0cmV0Y2h5R0Y/LyUqc3ltbWV0cmljR0Y/LyUobGFyZ2VvcEdGPy8lLm1vdmFibGVsaW1pdHNHRj8vJSdhY2NlbnRHRj8vJSdsc3BhY2VHUSYwLjBlbUYnLyUncnNwYWNlR0ZOLUYuNiVRIkFGJ0YxRjRGOy1GODYtUSI9RidGO0Y9RkBGQkZERkZGSEZKL0ZNUSwwLjI3Nzc3NzhlbUYnL0ZQRlgtRi42JVEiQkYnRjFGNC8lK2ZvcmVncm91bmRHUShbMCwwLDBdRicvJSlyZWFkb25seUdGP0Y7">LyomSSJDRzYiIiIiSSJBR0YlRiZJIkJHRiU=</Equation></Text-field>
 </Output>
 </Group>
 <Group labelreference="L975" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal">VarL(a*x-b);</Text-field>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">dependence(C(t,x));</Text-field>
 </Input>
 <Output>
-<Text-field style="Diagnostic" layout="Diagnostic"><Font encoding="UTF-8"> VarL called with arguments: a*x-b
- #(VarL,1): ListTools:-Reverse(sort(Varl(args),\134`Vars/&lt;&lt;\134`))</Font></Text-field>
-<Text-field style="Diagnostic" layout="Diagnostic"><Font encoding="UTF-8"> Vars/&lt;&lt; called with arguments: a, b
- #(\134`Vars/&lt;&lt;\134`,24): if Call(\134`Vars/&lt;&lt;/\134`,o)(u1,x1,u2,x2,pars) then ... end if;
- Vars/&lt;&lt;/function called with arguments: a, 1, b, 1
- #(\134`Vars/&lt;&lt;/function\134`,1): evalb(\134`list/&lt;&lt;\134`(u1,u2,\134`unk/&lt;&lt;/list\134`))
- list/&lt;&lt; called with arguments: a, b, [A, B, C]
- #(\134`list/&lt;&lt;\134`,2): ERROR(\134`not in the list\134`,x1)</Font></Text-field>
-<Text-field style="HyperlinkError" layout="HyperlinkError"><Hyperlink linktarget="http://www.maplesoft.com/support/help/errors/view.aspx?path=Error,%20(in%20list%2F%3C%3C)%20not%20in%20the%20list,%20a" hyperlink="true"><Font style="HyperlinkError">Error, (in list/&lt;&lt;) not in the list, a</Font></Hyperlink></Text-field>
+<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">L0kiQ0c2IjwkSSJ0R0YkSSJ4R0Yk</Equation></Text-field>
+</Output>
+</Group>
+<Group labelreference="L977" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">T(resolve(A2*C^2 + A1*C + A0), FAIL);</Text-field>
+</Input>
+<Output>
+<Text-field style="Line Printed Output" layout="Line Printed Output">[0] &lt;0&gt; 1. nonlinear solving by '`resolve/lin`' failed in C^2</Text-field>
 </Output>
 <Output>
-<Text-field style="Diagnostic" layout="Diagnostic"> locals defined as: n1 = n1, n2 = n2</Text-field>
+<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYoLUYjNiYtSSNtaUdGJDYlUSNBMkYnLyUnaXRhbGljR1EldHJ1ZUYnLyUsbWF0aHZhcmlhbnRHUSdpdGFsaWNGJy1JI21vR0YkNi1RMSZJbnZpc2libGVUaW1lcztGJy9GNVEnbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj8vJSlzdHJldGNoeUdGPy8lKnN5bW1ldHJpY0dGPy8lKGxhcmdlb3BHRj8vJS5tb3ZhYmxlbGltaXRzR0Y/LyUnYWNjZW50R0Y/LyUnbHNwYWNlR1EmMC4wZW1GJy8lJ3JzcGFjZUdGTi1JJW1zdXBHRiQ2JS1GLjYlUSJDRidGMUY0LUkjbW5HRiQ2JFEiMkYnRjsvJTFzdXBlcnNjcmlwdHNoaWZ0R1EiMEYnRjstRjg2LVEiK0YnRjtGPUZARkJGREZGRkhGSi9GTVEsMC4yMjIyMjIyZW1GJy9GUEZcby1GIzYmLUYuNiVRI0ExRidGMUY0RjdGVEY7RmhuLUYuNiVRI0EwRidGMUY0Rjs=">LCgqJkkjQTJHNiIiIiJJIkNHRiUiIiNGJiomSSNBMUdGJUYmRidGJkYmSSNBMEdGJUYm</Equation></Text-field>
 </Output>
+<Output>
+<Text-field style="Line Printed Output" layout="Line Printed Output">[0] &lt;0&gt; 2. linear solving by '`resolve/lin`' failed in pd(C,t)</Text-field>
+</Output>
+<Output>
+<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYoLUYjNiYtSShtZmVuY2VkR0YkNiQtRiM2Ji1GIzYoLUkjbW5HRiQ2JFEiMkYnLyUsbWF0aHZhcmlhbnRHUSdub3JtYWxGJy1JI21vR0YkNi1RMSZJbnZpc2libGVUaW1lcztGJ0Y4LyUmZmVuY2VHUSZmYWxzZUYnLyUqc2VwYXJhdG9yR0ZBLyUpc3RyZXRjaHlHRkEvJSpzeW1tZXRyaWNHRkEvJShsYXJnZW9wR0ZBLyUubW92YWJsZWxpbWl0c0dGQS8lJ2FjY2VudEdGQS8lJ2xzcGFjZUdRJjAuMGVtRicvJSdyc3BhY2VHRlAtSSNtaUdGJDYlUSNBMkYnLyUnaXRhbGljR1EldHJ1ZUYnL0Y5USdpdGFsaWNGJ0Y7LUZUNiVRIkNGJ0ZXRlpGOC1GPDYtUSIrRidGOEY/RkJGREZGRkhGSkZML0ZPUSwwLjIyMjIyMjJlbUYnL0ZSRl1vLUZUNiVRI0ExRidGV0ZaRjhGOEY7LUYuNiQtRiM2KC1JJm1mcmFjR0YkNigtRiM2Ji1GPDYvUSsmUGFydGlhbEQ7RicvJStmb3JlZ3JvdW5kR1EuWzE0NCwxNDQsMTQ0XUYnRjgvSSttc2VtYW50aWNzR0YkUSZpbmVydEYnRj9GQkZERkZGSEZKRkxGTkZRL0ZfcFEoWzAsMCwwXUYnLyUpcmVhZG9ubHlHRkFGOC1GIzYmLUYjNidGW3AtRlQ2JVEidEYnRldGWkZkcEZmcEY4RmRwRmZwRjgvJS5saW5ldGhpY2tuZXNzR1EiMUYnLyUrZGVub21hbGlnbkdRJ2NlbnRlckYnLyUpbnVtYWxpZ25HRmRxLyUpYmV2ZWxsZWRHRkFGO0ZmbkZkcEZmcEY4RjhGOC1GPDYtUSI9RidGOEY/RkJGREZGRkhGSkZML0ZPUSwwLjI3Nzc3NzhlbUYnL0ZSRl1yLUYjNi8tRjw2LVEqJnVtaW51czA7RidGOEY/RkJGREZGRkhGSkZMRlxvRl5vLUYjNiYtRi42JC1GIzYoRmZvRjtGU0ZkcEZmcEY4RjhGOy1JJW1zdXBHRiQ2JUZmbkY0LyUxc3VwZXJzY3JpcHRzaGlmdEdRIjBGJ0Y4LUY8Ni1RKCZtaW51cztGJ0Y4Rj9GQkZERkZGSEZKRkxGXG9GXm8tRiM2KkY0RjtGU0Y7RmZuRjtGYm9GOEZgcy1GIzYmLUYuNiQtRiM2KEZmb0Y7Rl9vRmRwRmZwRjhGOEY7RmZuRjhGYHMtRiM2JkZfb0Y7RmJvRjhGYHMtRi42JC1GIzYoRmZvRjstRlQ2JVEjQTBGJ0ZXRlpGZHBGZnBGOEY4RmluRitGOEZkcEZmcEY4">LyomLCYqJkkjQTJHNiIiIiJJIkNHRidGKCIiI0kjQTFHRidGKEYoLUkjcGRHRic2JEYpSSJ0R0YnRigsLiomLUYtNiRGJkYvRihGKUYqISIiKihGJkYoRilGKEYsRighIiMqJi1GLTYkRitGL0YoRilGKEY0KiZGK0YoRixGKEY0LUYtNiRJI0EwR0YnRi9GNEYjRig=</Equation></Text-field>
+</Output>
+<Output>
+<Text-field style="Line Printed Output" layout="Line Printed Output">[0] &lt;0&gt; 3. linear solving by '`resolve/lin`' failed in pd(C,x)</Text-field>
+</Output>
+<Output>
+<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYoLUYjNiYtSShtZmVuY2VkR0YkNiQtRiM2Ji1GIzYoLUkjbW5HRiQ2JFEiMkYnLyUsbWF0aHZhcmlhbnRHUSdub3JtYWxGJy1JI21vR0YkNi1RMSZJbnZpc2libGVUaW1lcztGJ0Y4LyUmZmVuY2VHUSZmYWxzZUYnLyUqc2VwYXJhdG9yR0ZBLyUpc3RyZXRjaHlHRkEvJSpzeW1tZXRyaWNHRkEvJShsYXJnZW9wR0ZBLyUubW92YWJsZWxpbWl0c0dGQS8lJ2FjY2VudEdGQS8lJ2xzcGFjZUdRJjAuMGVtRicvJSdyc3BhY2VHRlAtSSNtaUdGJDYlUSNBMkYnLyUnaXRhbGljR1EldHJ1ZUYnL0Y5USdpdGFsaWNGJ0Y7LUZUNiVRIkNGJ0ZXRlpGOC1GPDYtUSIrRidGOEY/RkJGREZGRkhGSkZML0ZPUSwwLjIyMjIyMjJlbUYnL0ZSRl1vLUZUNiVRI0ExRidGV0ZaRjhGOEY7LUYuNiQtRiM2KC1JJm1mcmFjR0YkNigtRiM2Ji1GPDYvUSsmUGFydGlhbEQ7RicvJStmb3JlZ3JvdW5kR1EuWzE0NCwxNDQsMTQ0XUYnRjgvSSttc2VtYW50aWNzR0YkUSZpbmVydEYnRj9GQkZERkZGSEZKRkxGTkZRL0ZfcFEoWzAsMCwwXUYnLyUpcmVhZG9ubHlHRkFGOC1GIzYmLUYjNidGW3AtRlQ2JVEieEYnRldGWkZkcEZmcEY4RmRwRmZwRjgvJS5saW5ldGhpY2tuZXNzR1EiMUYnLyUrZGVub21hbGlnbkdRJ2NlbnRlckYnLyUpbnVtYWxpZ25HRmRxLyUpYmV2ZWxsZWRHRkFGO0ZmbkZkcEZmcEY4RjhGOC1GPDYtUSI9RidGOEY/RkJGREZGRkhGSkZML0ZPUSwwLjI3Nzc3NzhlbUYnL0ZSRl1yLUYjNi8tRjw2LVEqJnVtaW51czA7RidGOEY/RkJGREZGRkhGSkZMRlxvRl5vLUYjNiYtRi42JC1GIzYoRmZvRjtGU0ZkcEZmcEY4RjhGOy1JJW1zdXBHRiQ2JUZmbkY0LyUxc3VwZXJzY3JpcHRzaGlmdEdRIjBGJ0Y4LUY8Ni1RKCZtaW51cztGJ0Y4Rj9GQkZERkZGSEZKRkxGXG9GXm8tRiM2KkY0RjtGU0Y7RmZuRjtGYm9GOEZgcy1GIzYmLUYuNiQtRiM2KEZmb0Y7Rl9vRmRwRmZwRjhGOEY7RmZuRjhGYHMtRiM2JkZfb0Y7RmJvRjhGYHMtRi42JC1GIzYoRmZvRjstRlQ2JVEjQTBGJ0ZXRlpGZHBGZnBGOEY4RmluRitGOEZkcEZmcEY4">LyomLCYqJkkjQTJHNiIiIiJJIkNHRidGKCIiI0kjQTFHRidGKEYoLUkjcGRHRic2JEYpSSJ4R0YnRigsLiomLUYtNiRGJkYvRihGKUYqISIiKihGJkYoRilGKEYsRighIiMqJi1GLTYkRitGL0YoRilGKEY0KiZGK0YoRixGKEY0LUYtNiRJI0EwR0YnRi9GNEYjRig=</Equation></Text-field>
+</Output>
+</Group>
+<Group labelreference="L979" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">###T(resolve(A2*C^2 + C + A0, -A2*C^2 + C + B0), FAIL);</Text-field>
+</Input>
+</Group>
+<Group labelreference="L981" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">nonzero(W2);</Text-field>
+</Input>
+<Output>
+<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">PCNJI1cyRzYi</Equation></Text-field>
+</Output>
+</Group>
+<Group labelreference="L980" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">T(resolve(W2*C^2 + C + A0, -W2*C^2 + C + B0), C = -(1/2)*A0-(1/2)*B0);</Text-field>
+</Input>
+</Group>
+<Group labelreference="L978" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
+</Group>
+<Group labelreference="L976" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
+<Input>
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
+</Input>
 </Group>
 <Group labelreference="L972" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input>
-<Text-field prompt="&gt; " style="Maple Input" layout="Normal">clear(dependence):
+<Text-field prompt="&gt; " style="Maple Input" layout="Normal">clear(dependence,nonzero):
 unknowns():</Text-field>
 </Input>
 <Output>
 <Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">STdDbGVhcmluZ35kZXBlbmRlbmNlJ3MuRzYi</Equation></Text-field>
+</Output>
+<Output>
+<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">STRDbGVhcmluZ35ub256ZXJvJ3MuRzYi</Equation></Text-field>
 </Output>
 </Group>
 <Group labelreference="L971" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input>
 <Text-field prompt="&gt; " style="Maple Input" layout="Normal"></Text-field>
 </Input>
-<Output>
-<Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output">NyI=</Equation></Text-field>
-</Output>
 </Group>
 <Group labelreference="L970" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
 <Input>
